@@ -1,0 +1,659 @@
+2026-02-28 23:20:18 | INFO     | <string>:1 | <module> | Test message
+2026-02-28 23:20:44 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:20:44 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:20:44 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:20:44 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:20:44 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:20:44 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:20:44 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:20:46 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:20:46 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:20:46 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.004s
+2026-02-28 23:20:46 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:20:46 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:20:46 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.000s
+2026-02-28 23:20:46 | DEBUG    | server.py:50 | wrapper | Route call: GET /login | User: anonymous
+2026-02-28 23:20:46 | INFO     | server.py:92 | login | Login page accessed | User in session: False
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | GET /login | Status: 200 | Duration: 0.002s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: False
+2026-02-28 23:20:47 | WARNING  | server.py:103 | chat | Unauthorized chat access attempt, redirecting to login
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 302 | Duration: 0.000s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:20:47 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.004s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:20:47 | WARNING  | server.py:124 | api_login | Login failed for: prof@tcm.org - Invalid credentials
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Failed - Invalid credentials
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/logout | User: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:132 | api_logout | Logout request for user: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGOUT | Details: Success
+2026-02-28 23:20:47 | INFO     | server.py:144 | api_logout | Logout completed for user: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/logout | Status: 200 | Duration: 0.000s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:151 | api_chat | Chat request from user: None
+2026-02-28 23:20:47 | WARNING  | server.py:154 | api_chat | Unauthorized chat attempt from IP: 127.0.0.1
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:159 | api_chat | User message: What is Ma Huang?...
+2026-02-28 23:20:47 | DEBUG    | server.py:168 | api_chat | Processing query: What is Ma Huang?...
+2026-02-28 23:20:47 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:20:47 | DEBUG    | server.py:231 | process_query | process_query called with: What is Ma Huang?...
+2026-02-28 23:20:47 | WARNING  | server.py:236 | process_query | No DEEPSEEK_API_KEY found, using fallback responses
+2026-02-28 23:20:47 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 228 chars, sources: ['Shang Han Lun - Chapter 3 (Ma Huang Tang)']
+2026-02-28 23:20:47 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_2
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.033s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:20:47 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:20:47 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/feedback | User: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:192 | api_feedback | Feedback request from user: prof@tcm.org
+2026-02-28 23:20:47 | INFO     | server.py:203 | api_feedback | Feedback received: Message=msg_1, Rating=up
+2026-02-28 23:20:47 | DEBUG    | server.py:204 | api_feedback | Feedback text: Great!
+2026-02-28 23:20:47 | INFO     | server.py:222 | api_feedback | Feedback saved to: feedback_20260228_232047_15dad239.json
+2026-02-28 23:20:47 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: FEEDBACK | Details: Rating=up, Message=msg_1
+2026-02-28 23:20:47 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/feedback | Status: 200 | Duration: 0.001s
+2026-02-28 23:27:54 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:27:54 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:27:54 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:27:54 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:27:54 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:27:54 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:27:54 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:27:54 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:27:54 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:27:54 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:27:54 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:27:54 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:27:54 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:27:54 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:27:59 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:27:59 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:27:59 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:27:59 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.005s
+2026-02-28 23:28:19 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:28:19 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:28:19 | INFO     | server.py:159 | api_chat | User message: What are the remedies to a painful back of head? What checks should be done to diagnose it?...
+2026-02-28 23:28:19 | DEBUG    | server.py:168 | api_chat | Processing query: What are the remedies to a painful back of head? W...
+2026-02-28 23:28:19 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:28:19 | DEBUG    | server.py:231 | process_query | process_query called with: What are the remedies to a painful back of head? What checks should be done to diagnose it?...
+2026-02-28 23:28:19 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: What are the remedies to a painful back of head? W...
+2026-02-28 23:28:19 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:28:19 | INFO     | chat_engine.py:205 | __init__ | ChatEngine initialized
+2026-02-28 23:28:19 | INFO     | chat_engine.py:209 | process_query | Processing query: What are the remedies to a painful back of head? What checks should be done to diagnose it?...
+2026-02-28 23:28:19 | DEBUG    | chat_engine.py:118 | build_context | build_context called with query: What are the remedies to a painful back of head? What checks should be done to diagnose it?...
+2026-02-28 23:28:19 | DEBUG    | chat_engine.py:212 | process_query | Built context with 448 chars, sources: ['Shang Han Lun - Liu Wei Di Huang Tang']
+2026-02-28 23:28:19 | DEBUG    | chat_engine.py:230 | process_query | Sending 1032 chars to DeepSeek
+2026-02-28 23:28:19 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:28:19 | INFO     | chat_engine.py:66 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:28:19 | DEBUG    | chat_engine.py:71 | chat | API attempt 1/3
+2026-02-28 23:28:20 | ERROR    | chat_engine.py:81 | chat | API authentication failed - invalid key
+2026-02-28 23:28:20 | ERROR    | chat_engine.py:234 | process_query | Error processing query: Invalid API key - please check DEEPSEEK_API_KEY
+2026-02-28 23:28:20 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 170 chars
+2026-02-28 23:28:20 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 170 chars, sources: ['Error']
+2026-02-28 23:28:20 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_26
+2026-02-28 23:28:20 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.430s
+2026-02-28 23:29:43 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:29:43 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:29:43 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:29:43 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:29:43 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:29:43 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:29:43 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:29:57 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:29:57 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:29:57 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:29:57 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:29:57 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:29:57 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:29:57 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.004s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: GET /login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:92 | login | Login page accessed | User in session: False
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | GET /login | Status: 200 | Duration: 0.002s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: False
+2026-02-28 23:30:00 | WARNING  | server.py:103 | chat | Unauthorized chat access attempt, redirecting to login
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 302 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:30:00 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.002s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:30:00 | WARNING  | server.py:124 | api_login | Login failed for: prof@tcm.org - Invalid credentials
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Failed - Invalid credentials
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/logout | User: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:132 | api_logout | Logout request for user: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGOUT | Details: Success
+2026-02-28 23:30:00 | INFO     | server.py:144 | api_logout | Logout completed for user: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/logout | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:151 | api_chat | Chat request from user: None
+2026-02-28 23:30:00 | WARNING  | server.py:154 | api_chat | Unauthorized chat attempt from IP: 127.0.0.1
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:159 | api_chat | User message: What is Ma Huang?...
+2026-02-28 23:30:00 | DEBUG    | server.py:168 | api_chat | Processing query: What is Ma Huang?...
+2026-02-28 23:30:00 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:30:00 | DEBUG    | server.py:231 | process_query | process_query called with: What is Ma Huang?...
+2026-02-28 23:30:00 | WARNING  | server.py:236 | process_query | No DEEPSEEK_API_KEY found, using fallback responses
+2026-02-28 23:30:00 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 228 chars, sources: ['Shang Han Lun - Chapter 3 (Ma Huang Tang)']
+2026-02-28 23:30:00 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_2
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.030s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:30:00 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:30:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/feedback | User: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:192 | api_feedback | Feedback request from user: prof@tcm.org
+2026-02-28 23:30:00 | INFO     | server.py:203 | api_feedback | Feedback received: Message=msg_1, Rating=up
+2026-02-28 23:30:00 | DEBUG    | server.py:204 | api_feedback | Feedback text: Great!
+2026-02-28 23:30:00 | INFO     | server.py:222 | api_feedback | Feedback saved to: feedback_20260228_233000_15dad239.json
+2026-02-28 23:30:00 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: FEEDBACK | Details: Rating=up, Message=msg_1
+2026-02-28 23:30:00 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/feedback | Status: 200 | Duration: 0.001s
+2026-02-28 23:30:40 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:30:40 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:30:40 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:30:40 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:30:40 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:30:40 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:30:40 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:30:40 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:30:40 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:30:40 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:30:40 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:30:40 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:30:40 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:30:40 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:30:41 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:30:41 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:30:41 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:30:41 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.004s
+2026-02-28 23:31:00 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:31:00 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:31:00 | INFO     | server.py:159 | api_chat | User message: Check...
+2026-02-28 23:31:00 | DEBUG    | server.py:168 | api_chat | Processing query: Check...
+2026-02-28 23:31:00 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:31:00 | DEBUG    | server.py:231 | process_query | process_query called with: Check...
+2026-02-28 23:31:00 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: Check...
+2026-02-28 23:31:00 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:31:00 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:31:00 | INFO     | chat_engine.py:211 | process_query | Processing query: Check...
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: Check...
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:214 | process_query | Built context with 135 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:232 | process_query | Sending 633 chars to DeepSeek
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:31:00 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:31:00 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:31:17 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:31:17 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:31:17 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:31:17 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:31:30 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:31:30 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:31:30 | INFO     | server.py:159 | api_chat | User message: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:31:30 | DEBUG    | server.py:168 | api_chat | Processing query: What do I do if my head hurts and how can I diagno...
+2026-02-28 23:31:30 | DEBUG    | server.py:231 | process_query | process_query called with: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:31:30 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: What do I do if my head hurts and how can I diagno...
+2026-02-28 23:31:30 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:31:30 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:31:30 | INFO     | chat_engine.py:211 | process_query | Processing query: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:214 | process_query | Built context with 1342 chars, sources: ['Shang Han Lun - Liu Wei Di Huang Tang', 'Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Bai Hu Tang']
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:232 | process_query | Sending 1891 chars to DeepSeek
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:31:30 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:31:30 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:31:33 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 4167 chars
+2026-02-28 23:31:33 | INFO     | chat_engine.py:234 | process_query | Query processed successfully, answer length: 4167 chars
+2026-02-28 23:31:33 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 4167 chars
+2026-02-28 23:31:33 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 4167 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:31:33 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:31:33 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 33.043s
+2026-02-28 23:32:03 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 3972 chars
+2026-02-28 23:32:03 | INFO     | chat_engine.py:234 | process_query | Query processed successfully, answer length: 3972 chars
+2026-02-28 23:32:03 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 3972 chars
+2026-02-28 23:32:03 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 3972 chars, sources: ['Shang Han Lun - Liu Wei Di Huang Tang', 'Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Bai Hu Tang']
+2026-02-28 23:32:03 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:32:03 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 33.142s
+2026-02-28 23:33:44 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:33:44 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:33:44 | INFO     | server.py:159 | api_chat | User message: Explain more about the clues you found for this and how I'm supposed to learn further into it....
+2026-02-28 23:33:44 | DEBUG    | server.py:168 | api_chat | Processing query: Explain more about the clues you found for this an...
+2026-02-28 23:33:44 | DEBUG    | server.py:231 | process_query | process_query called with: Explain more about the clues you found for this and how I'm supposed to learn further into it....
+2026-02-28 23:33:44 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: Explain more about the clues you found for this an...
+2026-02-28 23:33:44 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:33:44 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:33:44 | INFO     | chat_engine.py:211 | process_query | Processing query: Explain more about the clues you found for this and how I'm supposed to learn further into it....
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: Explain more about the clues you found for this and how I'm supposed to learn further into it....
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:214 | process_query | Built context with 135 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:232 | process_query | Sending 722 chars to DeepSeek
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:33:44 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:33:44 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:34:18 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 3916 chars
+2026-02-28 23:34:18 | INFO     | chat_engine.py:234 | process_query | Query processed successfully, answer length: 3916 chars
+2026-02-28 23:34:18 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 3916 chars
+2026-02-28 23:34:18 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 3916 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:34:18 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:34:18 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 33.610s
+2026-02-28 23:36:00 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:36:00 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:36:00 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:36:00 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:36:00 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:36:00 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:36:00 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:36:17 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:36:17 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:36:17 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:36:17 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:36:17 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:36:17 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:36:17 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:37:04 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:37:04 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:37:04 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:37:04 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.004s
+2026-02-28 23:37:07 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:37:07 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:37:07 | INFO     | server.py:159 | api_chat | User message: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:37:07 | DEBUG    | server.py:168 | api_chat | Processing query: What do I do if my head hurts and how can I diagno...
+2026-02-28 23:37:07 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:37:07 | DEBUG    | server.py:231 | process_query | process_query called with: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:37:07 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: What do I do if my head hurts and how can I diagno...
+2026-02-28 23:37:07 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:37:07 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:37:07 | INFO     | chat_engine.py:211 | process_query | Processing query: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:214 | process_query | Built context with 1342 chars, sources: ['Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Liu Wei Di Huang Tang', 'Shang Han Lun - Bai Hu Tang']
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:231 | process_query | Sending 1625 chars to DeepSeek
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:37:07 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:37:07 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:37:15 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 692 chars
+2026-02-28 23:37:15 | INFO     | chat_engine.py:233 | process_query | Query processed successfully, answer length: 692 chars
+2026-02-28 23:37:15 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 692 chars
+2026-02-28 23:37:15 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 692 chars, sources: ['Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Liu Wei Di Huang Tang', 'Shang Han Lun - Bai Hu Tang']
+2026-02-28 23:37:15 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:37:15 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 7.953s
+2026-02-28 23:37:37 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:37:37 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:37:37 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:37:37 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:37:37 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:37:37 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:37:37 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:37:39 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:37:39 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:37:39 | INFO     | server.py:159 | api_chat | User message: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | DEBUG    | server.py:168 | api_chat | Processing query: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | DEBUG    | server.py:231 | process_query | process_query called with: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | INFO     | server.py:239 | process_query | Using DeepSeek API for query: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:37:39 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:37:39 | INFO     | chat_engine.py:211 | process_query | Processing query: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: What does the third medicine you mentioned do?...
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:214 | process_query | Built context with 448 chars, sources: ['Shang Han Lun - Liu Wei Di Huang Tang']
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:231 | process_query | Sending 721 chars to DeepSeek
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 1 messages
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:37:39 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:37:39 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.003s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: GET /login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:92 | login | Login page accessed | User in session: False
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | GET /login | Status: 200 | Duration: 0.001s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: False
+2026-02-28 23:37:40 | WARNING  | server.py:103 | chat | Unauthorized chat access attempt, redirecting to login
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 302 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:37:40 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.002s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:37:40 | WARNING  | server.py:124 | api_login | Login failed for: prof@tcm.org - Invalid credentials
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Failed - Invalid credentials
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/logout | User: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:132 | api_logout | Logout request for user: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGOUT | Details: Success
+2026-02-28 23:37:40 | INFO     | server.py:144 | api_logout | Logout completed for user: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/logout | Status: 200 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:151 | api_chat | Chat request from user: None
+2026-02-28 23:37:40 | WARNING  | server.py:154 | api_chat | Unauthorized chat attempt from IP: 127.0.0.1
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:159 | api_chat | User message: What is Ma Huang?...
+2026-02-28 23:37:40 | DEBUG    | server.py:168 | api_chat | Processing query: What is Ma Huang?...
+2026-02-28 23:37:40 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:37:40 | DEBUG    | server.py:231 | process_query | process_query called with: What is Ma Huang?...
+2026-02-28 23:37:40 | WARNING  | server.py:236 | process_query | No DEEPSEEK_API_KEY found, using fallback responses
+2026-02-28 23:37:40 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 228 chars, sources: ['Shang Han Lun - Chapter 3 (Ma Huang Tang)']
+2026-02-28 23:37:40 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_2
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.031s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:37:40 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:37:40 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/feedback | User: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:192 | api_feedback | Feedback request from user: prof@tcm.org
+2026-02-28 23:37:40 | INFO     | server.py:203 | api_feedback | Feedback received: Message=msg_1, Rating=up
+2026-02-28 23:37:40 | DEBUG    | server.py:204 | api_feedback | Feedback text: Great!
+2026-02-28 23:37:40 | INFO     | server.py:222 | api_feedback | Feedback saved to: feedback_20260228_233740_15dad239.json
+2026-02-28 23:37:40 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: FEEDBACK | Details: Rating=up, Message=msg_1
+2026-02-28 23:37:40 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/feedback | Status: 200 | Duration: 0.001s
+2026-02-28 23:37:44 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 395 chars
+2026-02-28 23:37:44 | INFO     | chat_engine.py:233 | process_query | Query processed successfully, answer length: 395 chars
+2026-02-28 23:37:44 | INFO     | server.py:244 | process_query | DeepSeek query successful, answer length: 395 chars
+2026-02-28 23:37:44 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 395 chars, sources: ['Shang Han Lun - Liu Wei Di Huang Tang']
+2026-02-28 23:37:44 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:37:44 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 5.123s
+2026-02-28 23:39:12 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:39:12 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:39:12 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:39:12 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:39:12 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:39:12 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:39:12 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:40:53 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:40:53 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:40:53 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:40:53 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:40:53 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:40:53 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:40:53 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.002s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.000s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: GET /login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:92 | login | Login page accessed | User in session: False
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | GET /login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: False
+2026-02-28 23:40:56 | WARNING  | server.py:103 | chat | Unauthorized chat access attempt, redirecting to login
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 302 | Duration: 0.000s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:40:56 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.003s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:40:56 | WARNING  | server.py:124 | api_login | Login failed for: prof@tcm.org - Invalid credentials
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Failed - Invalid credentials
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/logout | User: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:132 | api_logout | Logout request for user: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGOUT | Details: Success
+2026-02-28 23:40:56 | INFO     | server.py:144 | api_logout | Logout completed for user: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/logout | Status: 200 | Duration: 0.000s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:151 | api_chat | Chat request from user: None
+2026-02-28 23:40:56 | WARNING  | server.py:154 | api_chat | Unauthorized chat attempt from IP: 127.0.0.1
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:159 | api_chat | User message: What is Ma Huang?...
+2026-02-28 23:40:56 | DEBUG    | server.py:168 | api_chat | Processing query: What is Ma Huang?... | History: 1 messages
+2026-02-28 23:40:56 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:40:56 | DEBUG    | server.py:234 | process_query | process_query called with: What is Ma Huang?... | History: 1 messages
+2026-02-28 23:40:56 | WARNING  | server.py:239 | process_query | No DEEPSEEK_API_KEY found, using fallback responses
+2026-02-28 23:40:56 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 228 chars, sources: ['Shang Han Lun - Chapter 3 (Ma Huang Tang)']
+2026-02-28 23:40:56 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_2
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.025s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:40:56 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:40:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/feedback | User: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:192 | api_feedback | Feedback request from user: prof@tcm.org
+2026-02-28 23:40:56 | INFO     | server.py:203 | api_feedback | Feedback received: Message=msg_1, Rating=up
+2026-02-28 23:40:56 | DEBUG    | server.py:204 | api_feedback | Feedback text: Great!
+2026-02-28 23:40:56 | INFO     | server.py:222 | api_feedback | Feedback saved to: feedback_20260228_234056_15dad239.json
+2026-02-28 23:40:56 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: FEEDBACK | Details: Rating=up, Message=msg_1
+2026-02-28 23:40:56 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/feedback | Status: 200 | Duration: 0.001s
+2026-02-28 23:42:42 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:42:42 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:42:42 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:42:42 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:42:42 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:42:42 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:42:42 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:42:42 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:42:42 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:42:42 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:42:42 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:42:42 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:42:42 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:42:42 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:42:46 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:42:46 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:42:46 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:42:46 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.007s
+2026-02-28 23:43:26 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:43:26 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:43:26 | INFO     | server.py:159 | api_chat | User message: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:43:26 | DEBUG    | server.py:168 | api_chat | Processing query: What do I do if my head hurts and how can I diagno... | History: 27 messages
+2026-02-28 23:43:26 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:43:26 | DEBUG    | server.py:234 | process_query | process_query called with: What do I do if my head hurts and how can I diagnose it?... | History: 27 messages
+2026-02-28 23:43:26 | INFO     | server.py:242 | process_query | Using DeepSeek API for query: What do I do if my head hurts and how can I diagno...
+2026-02-28 23:43:26 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:43:26 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:43:26 | INFO     | chat_engine.py:214 | process_query | Processing query: What do I do if my head hurts and how can I diagnose it?... | History: 27 messages
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: What do I do if my head hurts and how can I diagnose it?...
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:217 | process_query | Built context with 1342 chars, sources: ['Shang Han Lun - Bai Hu Tang', 'Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Liu Wei Di Huang Tang']
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:244 | process_query | Sending 11 messages to DeepSeek
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 11 messages
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:43:26 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:43:26 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:43:33 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 593 chars
+2026-02-28 23:43:33 | INFO     | chat_engine.py:246 | process_query | Query processed successfully, answer length: 593 chars
+2026-02-28 23:43:33 | INFO     | server.py:247 | process_query | DeepSeek query successful, answer length: 593 chars
+2026-02-28 23:43:33 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 593 chars, sources: ['Shang Han Lun - Bai Hu Tang', 'Shang Han Lun - Da Xiao Chai Hu Tang', 'Shang Han Lun - Liu Wei Di Huang Tang']
+2026-02-28 23:43:33 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:43:33 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 6.912s
+2026-02-28 23:43:56 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:43:56 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:43:56 | INFO     | server.py:159 | api_chat | User message: What's the third type  of pain you mentioned? elaborate...
+2026-02-28 23:43:56 | DEBUG    | server.py:168 | api_chat | Processing query: What's the third type  of pain you mentioned? elab... | History: 27 messages
+2026-02-28 23:43:56 | DEBUG    | server.py:234 | process_query | process_query called with: What's the third type  of pain you mentioned? elaborate... | History: 27 messages
+2026-02-28 23:43:56 | INFO     | server.py:242 | process_query | Using DeepSeek API for query: What's the third type  of pain you mentioned? elab...
+2026-02-28 23:43:56 | INFO     | chat_engine.py:39 | __init__ | DeepSeekClient initialized | Model: deepseek-chat | Timeout: 60s
+2026-02-28 23:43:56 | INFO     | chat_engine.py:207 | __init__ | ChatEngine initialized
+2026-02-28 23:43:56 | INFO     | chat_engine.py:214 | process_query | Processing query: What's the third type  of pain you mentioned? elaborate... | History: 27 messages
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:120 | build_context | build_context called with query: What's the third type  of pain you mentioned? elaborate...
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:217 | process_query | Built context with 135 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:244 | process_query | Sending 11 messages to DeepSeek
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:43 | chat | DeepSeekClient.chat called with 11 messages
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:49 | chat | Using API key: sk-7f061...9d8a
+2026-02-28 23:43:56 | INFO     | chat_engine.py:68 | chat | Sending request to DeepSeek API | Attempt 1/3
+2026-02-28 23:43:56 | DEBUG    | chat_engine.py:73 | chat | API attempt 1/3
+2026-02-28 23:44:02 | INFO     | chat_engine.py:97 | chat | API request successful | Response length: 508 chars
+2026-02-28 23:44:02 | INFO     | chat_engine.py:246 | process_query | Query processed successfully, answer length: 508 chars
+2026-02-28 23:44:02 | INFO     | server.py:247 | process_query | DeepSeek query successful, answer length: 508 chars
+2026-02-28 23:44:02 | DEBUG    | server.py:170 | api_chat | Query processed, answer length: 508 chars, sources: ['Shang Han Lun - General Reference']
+2026-02-28 23:44:02 | INFO     | server.py:181 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_28
+2026-02-28 23:44:02 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 6.049s
+2026-02-28 23:46:35 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:46:35 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:46:35 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:46:35 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:46:35 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:46:35 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:46:35 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:47:14 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:47:14 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:47:14 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:47:14 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:47:14 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:47:14 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:47:14 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:47:22 | INFO     | server.py:26 | <module> | ============================================================
+2026-02-28 23:47:22 | INFO     | server.py:27 | <module> | Shanghan-TCM Evidence v1 Server Starting
+2026-02-28 23:47:22 | INFO     | server.py:28 | <module> | Base Dir: /home/elinzi/Coding/shanghan/v1
+2026-02-28 23:47:22 | INFO     | server.py:29 | <module> | Feedback Dir: /home/elinzi/Coding/shanghan/v1/data/feedback
+2026-02-28 23:47:22 | INFO     | server.py:30 | <module> | Conversations Dir: /home/elinzi/Coding/shanghan/v1/data/conversations
+2026-02-28 23:47:22 | INFO     | server.py:31 | <module> | ============================================================
+2026-02-28 23:47:22 | INFO     | server.py:35 | <module> | Flask app created
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.013s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: GET / | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:86 | home | Home page accessed
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | GET / | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: GET /login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:92 | login | Login page accessed | User in session: False
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | GET /login | Status: 200 | Duration: 0.002s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: False
+2026-02-28 23:47:25 | WARNING  | server.py:103 | chat | Unauthorized chat access attempt, redirecting to login
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 302 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.001s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: GET /chat | User: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:101 | chat | Chat page accessed | Authenticated: True
+2026-02-28 23:47:25 | INFO     | server.py:105 | chat | Serving chat to user: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | GET /chat | Status: 200 | Duration: 0.003s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:47:25 | WARNING  | server.py:124 | api_login | Login failed for: prof@tcm.org - Invalid credentials
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Failed - Invalid credentials
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/logout | User: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:132 | api_logout | Logout request for user: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGOUT | Details: Success
+2026-02-28 23:47:25 | INFO     | server.py:144 | api_logout | Logout completed for user: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/logout | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:151 | api_chat | Chat request from user: None
+2026-02-28 23:47:25 | WARNING  | server.py:154 | api_chat | Unauthorized chat attempt from IP: 127.0.0.1
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/chat | User: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:151 | api_chat | Chat request from user: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:159 | api_chat | User message: What is Ma Huang?...
+2026-02-28 23:47:25 | DEBUG    | server.py:171 | api_chat | Processing query: What is Ma Huang?... | History: 0 messages
+2026-02-28 23:47:25 | INFO     | chat_engine.py:27 | <module> | Chat engine initialized
+2026-02-28 23:47:25 | DEBUG    | server.py:237 | process_query | process_query called with: What is Ma Huang?... | History: 0 messages
+2026-02-28 23:47:25 | WARNING  | server.py:242 | process_query | No DEEPSEEK_API_KEY found, using fallback responses
+2026-02-28 23:47:25 | DEBUG    | server.py:173 | api_chat | Query processed, answer length: 228 chars, sources: ['Shang Han Lun - Chapter 3 (Ma Huang Tang)']
+2026-02-28 23:47:25 | INFO     | server.py:184 | api_chat | Chat response sent to user: prof@tcm.org | Msg ID: msg_2
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/chat | Status: 200 | Duration: 0.028s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/login | User: anonymous
+2026-02-28 23:47:25 | INFO     | server.py:114 | api_login | Login attempt for email: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:120 | api_login | Login successful for: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: LOGIN | Details: Success
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/login | Status: 200 | Duration: 0.000s
+2026-02-28 23:47:25 | DEBUG    | server.py:50 | wrapper | Route call: POST /api/feedback | User: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:195 | api_feedback | Feedback request from user: prof@tcm.org
+2026-02-28 23:47:25 | INFO     | server.py:206 | api_feedback | Feedback received: Message=msg_1, Rating=up
+2026-02-28 23:47:25 | DEBUG    | server.py:207 | api_feedback | Feedback text: Great!
+2026-02-28 23:47:25 | INFO     | server.py:225 | api_feedback | Feedback saved to: feedback_20260228_234725_15dad239.json
+2026-02-28 23:47:25 | INFO     | logger.py:91 | log_user_action | USER_ACTION | User: prof@tcm.org | Action: FEEDBACK | Details: Rating=up, Message=msg_1
+2026-02-28 23:47:25 | INFO     | logger.py:63 | log_request | REQUEST | POST /api/feedback | Status: 200 | Duration: 0.001s
