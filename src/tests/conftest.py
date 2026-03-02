@@ -18,7 +18,7 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def server():
+def playwright_server():
     """Start the Flask server for the session."""
     env = os.environ.copy()
     env['PORT'] = str(PORT)
@@ -55,6 +55,6 @@ def server():
 
 
 @pytest.fixture(scope="session")
-def base_url(server):
+def base_url(playwright_server):
     """Provide base URL to tests."""
-    return server
+    return playwright_server

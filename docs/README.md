@@ -26,36 +26,42 @@ cd src && uvicorn api:app --reload
 ## Project Structure
 
 ```
-edwin/
-├── docs/                          # Original source documents
-│   ├── Requirements_SHTCM_v1.docx
-│   ├── SHLonly_ReEdited_forAIproject.docx
-│   └── lesson105_lecturebyDrMa.docx
+shanghan/
+├── src/                           # Flask application (v1)
+│   ├── server.py                  # Main Flask application
+│   ├── chat_engine.py             # Chat engine with DeepSeek API
+│   ├── knowledge_base.py          # TCM knowledge base
+│   ├── logger.py                  # Logging configuration
+│   ├── requirements.txt           # Python dependencies
+│   ├── templates/                 # HTML templates
+│   │   ├── home.html
+│   │   ├── login.html
+│   │   ├── chat.html
+│   │   └── admin.html
+│   ├── data/                      # Application data
+│   │   ├── feedback/              # User feedback
+│   │   └── conversations/         # Saved conversations
+│   ├── logs/                      # Application logs
+│   ├── tests/                     # Test suite
+│   └── static/                    # Static files (CSS, JS)
 │
-├── data/
-│   ├── raw/                       # Converted text files
-│   ├── parsed/                    # Structured JSON data
-│   │   ├── textbook.json          # Parsed textbook
-│   │   ├── lecture_105.json       # Parsed lecture
-│   │   ├── knowledge_base.json    # Merged data
-│   │   └── rag_chunks.json        # Chunks for vector DB
-│   ├── vector_db/                 # ChromaDB storage
-│   ├── terminology.json           # Bilingual glossary
-│   └── line_signatures.json       # LINE number mappings
+├── nginx/                         # Nginx configuration for SSL
+│   ├── nginx.conf                 # Main nginx configuration
+│   ├── generate-ssl.sh            # SSL certificate generator
+│   └── README.md                  # Nginx setup instructions
 │
-├── src/
-│   ├── schema.py                  # Data models
-│   ├── parse_textbook.py          # Textbook parser
-│   ├── parse_lecture.py           # Lecture parser
-│   ├── merge.py                   # Combines textbook + lectures
-│   ├── vector_db.py               # ChromaDB setup
-│   ├── terminology.py             # Bilingual support
-│   ├── api.py                     # FastAPI server
-│   └── ingest_lecture.py          # CLI for adding lectures
+├── lessons/                       # Lesson documents
+│   ├── labeled/                   # Labeled lesson files
+│   └── original/                  # Original lesson files
 │
-├── demo.py                        # End-to-end demo
-├── requirements.txt               # Python dependencies
-└── README.md                      # This file
+├── docs/                          # Project documentation
+│   ├── technical.md               # Technical specifications
+│   ├── business_requirements.md   # Business requirements
+│   ├── versions.md                # Version history
+│   └── templates/                 # Documentation templates
+│
+├── logs/                          # System logs (legacy)
+└── server.py                      # Legacy root server (simple version)
 ```
 
 ## Data Model
@@ -168,6 +174,47 @@ python src/parse_textbook.py
 
 python src/parse_lecture.py
 ```
+
+## Production Deployment with Nginx
+
+For production deployment with SSL termination, use the nginx configuration provided in the `nginx/` directory.
+
+### Setup Steps
+
+1. **Install nginx** on your server
+2. **Generate SSL certificates** (use Let's Encrypt for production or `nginx/generate-ssl.sh` for testing)
+3. **Configure nginx**:
+   ```bash
+   sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
+   sudo nginx -t  # Test configuration
+   sudo systemctl restart nginx
+   ```
+4. **Start Flask application**:
+   ```bash
+   cd src
+   PORT=5000 FLASK_HOST=127.0.0.1 .venv/bin/python server.py
+   ```
+   For production, use a process manager like systemd or supervisor.
+
+### Architecture
+
+```
+Browser → HTTPS (443) → nginx → HTTP (5000) → Flask
+```
+
+- Nginx handles SSL termination and static files
+- Flask runs on localhost:5000 for security
+- HTTP traffic is automatically redirected to HTTPS
+
+### Testing
+
+Run the nginx configuration tests:
+```bash
+cd src
+pytest tests/test_nginx.py -v
+```
+
+See `nginx/README.md` for detailed setup instructions.
 
 ## License
 
