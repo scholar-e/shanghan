@@ -140,7 +140,6 @@ logs/
 *.temp
 
 # Archives
-*.zip
 *.tar.gz
 *.tgz
 
@@ -151,5 +150,5 @@ logs/
 
 # Project specific
 server.py
-AddedLabel_lesson_files-*.zip
-Orign_lesson_files-*.zip
+#AddedLabel_lesson_files-*.zip
+#Orign_lesson_files-*.zip
