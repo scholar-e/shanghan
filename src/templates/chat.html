@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Shanghan-TCM Evidence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-email {
+            font-size: 14px;
+            color: #666;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: #0a6398;
+            border: 1px solid #0a6398;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            background: #0a6398;
+            color: white;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 20px;
+        }
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 100%;
+        }
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .message.bot .message-avatar {
+            background: #0a6398;
+            color: white;
+        }
+        .message.user .message-avatar {
+            background: #6c757d;
+            color: white;
+        }
+        .message-content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 70%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            line-height: 1.5;
+        }
+        .message-content h2 {
+            font-size: 16px;
+            margin: 8px 0 4px;
+            color: #0a6398;
+        }
+        .message-content h3 {
+            font-size: 14px;
+            margin: 6px 0 3px;
+            color: #08507a;
+        }
+        .message-content strong {
+            color: #0a6398;
+        }
+        .message-content p {
+            margin: 4px 0;
+        }
+        .message-content ul {
+            margin: 4px 0;
+            padding-left: 20px;
+        }
+        .message-content li {
+            margin: 2px 0;
+        }
+        .message-content br {
+            margin: 2px 0;
+        }
+        .message.user .message-content {
+            background: #0a6398;
+            color: white;
+        }
+        .message.sources .message-content {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+        .sources-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .source-item {
+            font-size: 13px;
+            color: #0a6398;
+            padding: 4px 0;
+        }
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .feedback-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            padding-left: 48px;
+        }
+        .message.user + .feedback-container {
+            padding-left: 0;
+            padding-right: 48px;
+            justify-content: flex-end;
+        }
+        .feedback-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            opacity: 0.5;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .feedback-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        .feedback-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+        .feedback-popup h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .feedback-popup textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 15px;
+        }
+        .feedback-popup textarea:focus {
+            outline: none;
+            border-color: #0a6398;
+        }
+        .feedback-popup-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .feedback-popup-buttons button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .feedback-submit {
+            background: #0a6398;
+            color: white;
+            border: none;
+        }
+        .feedback-skip {
+            background: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 999;
+        }
+        .typing {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .typing span {
+            width: 8px;
+            height: 8px;
+            background: #ccc;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+        
+        .input-container {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #messageInput:focus {
+            border-color: #0a6398;
+        }
+        .send-btn {
+            padding: 10px 24px;
+            background: #0a6398;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .send-btn:hover {
+            background: #08507a;
+        }
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        .welcome-message h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .welcome-message p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Shanghan-TCM Evidence</div>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            {% if user == 'prof@tcm.org' %}
+            <a href="/admin" class="admin-btn" style="padding: 8px 16px; background: #0a6398; color: white; border-radius: 4px; font-size: 14px; text-decoration: none; margin-right: 10px;">Admin</a>
+            {% endif %}
+            <button class="logout-btn" onclick="logout()">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <div class="welcome-message">
+                <h2>Welcome to Shanghan-TCM Evidence</h2>
+                <p>Ask me anything about the Shang Han Lun, prescriptions, patterns, or clause interpretations.<br>
+                I can answer in Chinese or English.</p>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea id="messageInput" placeholder="Ask a question..." rows="1"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const messagesEl = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        let currentMessageId = null;
+
+        document.getElementById('userEmail').textContent = '{{ user }}';
+
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            const typingEl = addTypingIndicator();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+
+                const data = await response.json();
+                typingEl.remove();
+
+                if (data.answer) {
+                    currentMessageId = data.message_id;
+                    const msgEl = addMessage(data.answer, 'bot');
+                    addFeedbackButtons(data.message_id);
+                }
+                if (data.sources && data.sources.length > 0) {
+                    addSources(data.sources);
+                }
+            } catch (err) {
+                typingEl.remove();
+                addMessage('An error occurred. Please try again.', 'bot');
+            }
+        }
+
+        function addMessage(content, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            const contentHtml = sender === 'user' ? escapeHtml(content) : renderMarkdown(content);
+            div.innerHTML = `
+                <div class="message-avatar">${sender === 'user' ? 'U' : 'AI'}</div>
+                <div class="message-content">${contentHtml}</div>
+            `;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            return div;
+        }
+
+        function addSources(sources) {
+            const div = document.createElement('div');
+            div.className = 'message sources';
+            div.innerHTML = `
+                <div class="message-avatar">📖</div>
+                <div class="message-content">
+                    <div class="sources-label">Sources</div>
+                    ${sources.map(s => `<div class="source-item">${escapeHtml(s)}</div>`).join('')}
+                </div>
+            `;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function addFeedbackButtons(messageId) {
+            const container = document.createElement('div');
+            container.className = 'feedback-container';
+            container.innerHTML = `
+                <button class="feedback-btn" onclick="showFeedbackPopup('${messageId}', 'up')" title="Helpful">👍</button>
+                <button class="feedback-btn" onclick="showFeedbackPopup('${messageId}', 'down')" title="Not helpful">👎</button>
+            `;
+            messagesEl.appendChild(container);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function showFeedbackPopup(messageId, rating) {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            overlay.id = 'overlay';
+
+            const popup = document.createElement('div');
+            popup.className = 'feedback-popup';
+            popup.innerHTML = `
+                <h3>${rating === 'up' ? 'Great! Any additional feedback?' : 'Sorry to hear that. Tell us more:'}</h3>
+                <textarea id="feedbackText" placeholder="Optional: Share your feedback here..."></textarea>
+                <div class="feedback-popup-buttons">
+                    <button class="feedback-skip" onclick="closeFeedback()">Skip</button>
+                    <button class="feedback-submit" onclick="submitFeedback('${messageId}', '${rating}')">Submit</button>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+        }
+
+        function closeFeedback() {
+            document.getElementById('overlay')?.remove();
+            document.querySelector('.feedback-popup')?.remove();
+        }
+
+        async function submitFeedback(messageId, rating) {
+            const feedbackText = document.getElementById('feedbackText')?.value || '';
+            
+            try {
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        message_id: messageId,
+                        rating: rating,
+                        feedback: feedbackText
+                    })
+                });
+            } catch (err) {
+                console.error('Failed to submit feedback:', err);
+            }
+            
+            closeFeedback();
+        }
+
+        function addTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'message bot';
+            div.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    <div class="typing">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            return div;
+        }
+
+        function renderMarkdown(text) {
+            let html = escapeHtml(text);
+            html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = html.replace(/\n/g, '<br>');
+            return '<p>' + html + '</p>';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function logout() {
+            await fetch('/api/logout', {method: 'POST'});
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
