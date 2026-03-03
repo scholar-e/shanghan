@@ -58,10 +58,11 @@ shanghan/
 │   ├── technical.md               # Technical specifications
 │   ├── business_requirements.md   # Business requirements
 │   ├── versions.md                # Version history
-│   └── templates/                 # Documentation templates
+│   ├── templates/                 # Documentation templates
+│   └── docs_server.py              # Document viewer server
 │
 ├── logs/                          # System logs (legacy)
-└── server.py                      # Legacy root server (simple version)
+└── server.py                      # Legacy root server (removed)
 ```
 
 ## Data Model
