@@ -50,4 +50,4 @@ def list_files():
 
 if __name__ == '__main__':
     print(f"Serving markdown files from: {MD_DIR}")
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=8000, host='127.0.0.1')
