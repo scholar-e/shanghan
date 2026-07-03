@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>处方记录 - 伤寒-TCM 证据</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <style>
+        body { background: var(--gray-50); min-height: 100vh; }
+        .presc-container { max-width: 1000px; margin: 0 auto; padding: var(--space-lg); }
+        .presc-header {
+            background: white; border-radius: var(--radius-lg); padding: var(--space-xl);
+            margin-bottom: var(--space-xl); box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .presc-header h1 {
+            color: var(--gray-900); display: flex; align-items: center; gap: var(--space-md); margin: 0;
+        }
+        .presc-header h1 i { color: var(--primary); }
+        .presc-header .header-actions { display: flex; gap: var(--space-sm); }
+        .presc-empty {
+            background: white; border-radius: var(--radius-lg); padding: 3rem 2rem;
+            text-align: center; box-shadow: var(--shadow-sm); color: var(--gray-500);
+        }
+        .presc-empty i { font-size: 3rem; margin-bottom: 1rem; color: var(--gray-300); }
+        .presc-card {
+            background: white; border-radius: var(--radius-lg); padding: var(--space-lg);
+            margin-bottom: var(--space-md); box-shadow: var(--shadow-sm);
+            border-left: 3px solid var(--primary); cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .presc-card:hover { box-shadow: var(--shadow-md); transform: translateX(2px); }
+        .presc-card-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: var(--space-sm);
+        }
+        .presc-formula-names {
+            font-size: 1.1rem; font-weight: 600; color: var(--primary);
+        }
+        .presc-timestamp {
+            font-size: 0.8rem; color: var(--gray-500); white-space: nowrap;
+        }
+        .presc-query {
+            color: var(--gray-700); margin-bottom: var(--space-sm);
+            font-size: 0.9rem;
+        }
+        .presc-query strong { color: var(--gray-900); }
+        .presc-preview {
+            color: var(--gray-600); font-size: 0.85rem; line-height: 1.5;
+            overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+        .presc-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--primary-light); color: var(--primary);
+            padding: 2px 8px; border-radius: var(--radius-full);
+            font-size: 0.75rem; font-weight: 600;
+        }
+
+        /* Detail modal */
+        .presc-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 1000;
+            align-items: center; justify-content: center; padding: 1rem;
+        }
+        .presc-modal-overlay.active { display: flex; }
+        .presc-modal {
+            background: white; border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl); max-width: 700px; width: 100%;
+            max-height: 85vh; overflow-y: auto; position: relative;
+            animation: popupAppear 0.2s ease-out;
+        }
+        .presc-modal-header {
+            position: sticky; top: 0; background: white; z-index: 1;
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .presc-modal-header h2 { margin: 0; font-size: 1.2rem; }
+        .presc-modal-close {
+            background: none; border: none; font-size: 1.5rem; cursor: pointer;
+            color: var(--gray-500); padding: 0; line-height: 1;
+        }
+        .presc-modal-close:hover { color: var(--gray-800); }
+        .presc-modal-body { padding: 1.5rem; }
+        .presc-section { margin-bottom: 1.25rem; }
+        .presc-section-title {
+            font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .presc-section-content {
+            color: var(--gray-700); line-height: 1.6; font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        .presc-formula-card {
+            background: var(--gray-50); border-radius: var(--radius-md);
+            padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--gray-200);
+        }
+        .presc-formula-name {
+            font-weight: 600; color: var(--primary-dark); margin-bottom: 0.5rem;
+        }
+        .presc-herb-table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem;
+        }
+        .presc-herb-table th {
+            text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-600); font-weight: 600;
+        }
+        .presc-herb-table td { padding: 4px 8px; border-bottom: 1px solid var(--gray-100); }
+        .presc-text { color: var(--gray-700); line-height: 1.6; font-size: 0.9rem; }
+        .presc-response-text {
+            background: var(--gray-50); border-radius: var(--radius-md);
+            padding: 1rem; white-space: pre-wrap; line-height: 1.6;
+            font-size: 0.9rem; color: var(--gray-700);
+        }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            color: var(--primary); text-decoration: none; font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .loading { text-align: center; padding: 2rem; color: var(--gray-500); }
+        @media (max-width: 600px) {
+            .presc-container { padding: var(--space-md); }
+            .presc-header { flex-direction: column; gap: var(--space-md); text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="presc-container">
+        <div class="presc-header">
+            <h1><i class="fas fa-prescription-bottle-alt"></i> 处方记录</h1>
+            <div class="header-actions">
+                <a href="/chat" class="btn btn-outline"><i class="fas fa-comment"></i> 返回聊天</a>
+            </div>
+        </div>
+        <div id="prescriptions-list">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+        </div>
+    </div>
+
+    <div class="presc-modal-overlay" id="prescModal" onclick="closeModal(event)">
+        <div class="presc-modal">
+            <div class="presc-modal-header">
+                <h2><i class="fas fa-prescription-bottle-alt" style="color:var(--primary);margin-right:8px;"></i>处方详情</h2>
+                <button class="presc-modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="presc-modal-body" id="prescModalBody">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadPrescriptions() {
+            const list = document.getElementById('prescriptions-list');
+            try {
+                const res = await fetch('/api/prescriptions');
+                const data = await res.json();
+                if (data.prescriptions.length === 0) {
+                    list.innerHTML = '<div class="presc-empty"><i class="fas fa-prescription-bottle-alt"></i><p>暂无处方记录。<br>当 AI 生成方剂相关内容时，处方将自动保存于此。</p></div>';
+                    return;
+                }
+                list.innerHTML = data.prescriptions.map(p => {
+                    const names = p.formula_names.filter(Boolean).join('、');
+                    const time = new Date(p.timestamp).toLocaleString('zh-CN');
+                    return '<div class="presc-card" onclick="openPrescription(\'' + p.id + '\')">' +
+                        '<div class="presc-card-header">' +
+                            '<div class="presc-formula-names">' + escapeHtml(names || '方剂') + '</div>' +
+                            '<div class="presc-timestamp">' + time + '</div>' +
+                        '</div>' +
+                        '<div class="presc-query"><strong>问：</strong>' + escapeHtml(p.query) + '</div>' +
+                        '<div class="presc-preview">' + escapeHtml(p.response_preview) + '</div>' +
+                        '<div style="margin-top:8px;"><span class="presc-badge"><i class="fas fa-leaf"></i> ' + p.formula_count + ' 个方剂</span></div>' +
+                    '</div>';
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<div class="presc-empty"><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i><p>加载失败，请刷新重试。</p></div>';
+            }
+        }
+
+        async function openPrescription(id) {
+            const overlay = document.getElementById('prescModal');
+            const body = document.getElementById('prescModalBody');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            body.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>';
+            try {
+                const res = await fetch('/api/prescriptions/' + id);
+                const data = await res.json();
+                let formulasHtml = '';
+                if (data.formulas && data.formulas.length > 0) {
+                    formulasHtml = '<div class="presc-section"><div class="presc-section-title"><i class="fas fa-leaf"></i> 方剂详情</div>';
+                    for (const f of data.formulas) {
+                        const compRows = (f.composition || []).map(h =>
+                            '<tr><td>' + escapeHtml(h.herb) + '</td><td>' + escapeHtml(h.pinyin) + '</td><td style="color:var(--gray-500)">' + escapeHtml(h.en) + '</td><td>' + escapeHtml(h.dosage) + '</td><td>' + escapeHtml(h.role) + '</td></tr>'
+                        ).join('');
+                        formulasHtml +=
+                            '<div class="presc-formula-card">' +
+                            '<div class="presc-formula-name">' + escapeHtml(f.names.zh) + ' (' + escapeHtml(f.names.pinyin) + ')</div>' +
+                            '<div class="presc-text" style="margin-bottom:8px;color:var(--gray-500);font-size:0.85rem;">' + escapeHtml(f.names.en) + '</div>' +
+                            '<table class="presc-herb-table"><thead><tr><th>中药</th><th>拼音</th><th>英文</th><th>剂量</th><th>角色</th></tr></thead><tbody>' + compRows + '</tbody></table>' +
+                            '<div style="margin-top:8px;"><strong>主治：</strong>' + escapeHtml(f.indications) + '</div>' +
+                            '<div><strong>功能：</strong>' + escapeHtml(f.functions) + '</div>' +
+                            '<div><strong>证型：</strong>' + escapeHtml(f.pattern) + '</div>' +
+                            '</div>';
+                    }
+                    formulasHtml += '</div>';
+                }
+                body.innerHTML =
+                    '<div class="presc-section"><div class="presc-section-title"><i class="fas fa-clock"></i> 时间</div><div class="presc-section-content">' + new Date(data.timestamp).toLocaleString('zh-CN') + '</div></div>' +
+                    '<div class="presc-section"><div class="presc-section-title"><i class="fas fa-question-circle"></i> 用户提问</div><div class="presc-section-content">' + escapeHtml(data.query) + '</div></div>' +
+                    formulasHtml +
+                    '<div class="presc-section"><div class="presc-section-title"><i class="fas fa-robot"></i> AI 回答</div><div class="presc-response-text">' + escapeHtml(data.response) + '</div></div>';
+            } catch (e) {
+                body.innerHTML = '<div class="presc-empty"><p>加载失败。</p></div>';
+            }
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            const overlay = document.getElementById('prescModal');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadPrescriptions();
+    </script>
+</body>
+</html>

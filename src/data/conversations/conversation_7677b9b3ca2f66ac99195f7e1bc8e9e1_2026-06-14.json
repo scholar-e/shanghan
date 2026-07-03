@@ -1,0 +1,28 @@
+{
+  "session_id": "7677b9b3ca2f66ac99195f7e1bc8e9e1",
+  "user_email": "prof@tcm.org",
+  "timestamp": "2026-06-14T02:46:51.206549",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me about Gui Zhi Tang",
+      "timestamp": "2026-06-14T02:46:49.285750"
+    },
+    {
+      "role": "assistant",
+      "content": "## Gui Zhi Tang  \n**Gui Zhi Tang** (Cinnamon Twig Decoction) treats Tai Yang stage wind pattern, with **桂枝 (Gui Zhi, 9g)** as chief to release exterior and harmonize ying and wei [1]. Key indications include **mild fever, aversion to wind, sweating, and a floating slow pulse** [2].",
+      "sources": [
+        "Shang Han Lun - Gui Zhi Tang",
+        "Shang Han Lun - Da Xiao Chai Hu Tang",
+        "Shang Han Lun - Bai Hu Tang",
+        "Shang Han Lun - Si Wu Tang",
+        "Shang Han Lun - Xiao Qing Long Tang",
+        "Shang Han Lun - Cheng Qi Tang",
+        "Shang Han Lun - Ma Huang Tang",
+        "Shang Han Lun - Liu Wei Di Huang Tang"
+      ],
+      "context": "Formula: 麻黄汤 (Ma Huang Tang, Ephedra Decoction)\nComposition: 麻黄 (Ma Huang, 9g), 桂枝 (Gui Zhi, 9g), 杏仁 (Xing Ren, 9g), 甘草 (Gan Cao, 6g)\nRoles: 麻黄 as Jun (Chief), 桂枝 as Chen (Minister), 杏仁 as Zuo (Assistant), 甘草 as Shi (Envoy)\nIndications: Exterior cold with wheezing, aversion to cold, fever, no sweating, body aches, floating tight pulse\nFunctions: Releases the exterior, promotes perspiration, relieves wheezing, stops coughing\nPattern: Tai Yang stage with cold\n\nFormula: 桂枝汤 (Gui Zhi Tang, Cinnamon Twig Decoction)\nComposition: 桂枝 (Gui Zhi, 9g), 白芍 (Bai Shao, 9g), 生姜 (Sheng Jiang, 9g), 大枣 (Da Zao, 3 pieces), 甘草 (Gan Cao, 6g)\nRoles: 桂枝 as Jun (Chief), 白芍 as Chen (Minister), 生姜 as Zuo (Assistant), 大枣 as Zuo (Assistant), 甘草 as Shi (Envoy)\nIndications: Exterior cold with sweating, mild fever, aversion to wind, floating slow pulse\nFunctions: Releases the exterior, harmonizes ying and wei\nPattern: Tai Yang stage with wind\n\nFormula: 小青龙汤 (Xiao Qing Long Tang, Minor Blue Green Dragon Decoction)\nComposition: 麻黄 (Ma Huang, 9g), 桂枝 (Gui Zhi, 9g), 干姜 (Gan Jiang, 9g), 细辛 (Xi Xin, 3g), 五味子 (Wu Wei Zi, 6g), 白芍 (Bai Shao, 9g), 半夏 (Ban Xia, 9g), 甘草 (Gan Cao, 6g)\nRoles: 麻黄 as Jun, 桂枝 as Chen, 干姜 as Chen, 细辛 as Zuo, 五味子 as Zuo, 白芍 as Zuo, 半夏 as Zuo, 甘草 as Shi\nIndications: Exterior cold with interior fluid retention, wheezing, profuse clear phlegm, cough\nFunctions: Releases exterior, warms the lungs, transforms phlegm, stops coughing\nPattern: Tai Yang with internal fluid retention\n\nFormula: 大、小柴胡汤 (Da Xiao Chai Hu Tang, Major/Minor Bupleurum Decoction)\nComposition: 柴胡 (Chai Hu, 12-24g), 黄芩 (Huang Qin, 9g), 党参 (Dang Shen, 9g), 半夏 (Ban Xia, 9g), 生姜 (Sheng Jiang, 9g), 大枣 (Da Zao, 4 pieces), 甘草 (Gan Cao, 6g)\nRoles: 柴胡 as Jun, 黄芩 as Chen, 党参 as Chen, 半夏 as Zuo, 生姜 as Zuo, 大枣 as Zuo, 甘草 as Shi\nIndications: Shaoyang stage pattern, alternating fever and chills, chest fullness, bitter taste, loss of appetite\nFunctions: Harmonizes Shaoyang, relieves alternating fever and chills\nPattern: Shaoyang stage\n\nFormula: 白虎汤 (Bai Hu Tang, White Tiger Decoction)\nComposition: 石膏 (Shi Gao, 30g), 知母 (Zhi Mu, 9g), 甘草 (Gan Cao, 6g), 粳米 (Jing Mi, 30g)\nRoles: 石膏 as Jun, 知母 as Chen, 甘草 as Shi, 粳米 as Shi\nIndications: Yangming stage with high fever, profuse sweating, severe thirst, large pulse\nFunctions: Clears heat, drains fire, relieves severe thirst\nPattern: Yangming stage - pure heat\n\nFormula: 承气汤类 (Cheng Qi Tang, Purgative Decoctions)\nComposition: 大黄 (Da Huang, 12g), 芒硝 (Mang Xiao, 9g), 厚朴 (Hou Po, 24g), 枳实 (Zhi Shi, 12g)\nRoles: 大黄 as Jun, 芒硝 as Chen, 厚朴 as Zuo, 枳实 as Zuo\nIndications: Yangming stage with internal heat accumulation, constipation, abdominal distension, tidal fever\nFunctions: Purges heat, empties the bowels, drains accumulation\nPattern: Yangming stage - heat accumulation\n\nFormula: 四物汤 (Si Wu Tang, Four-Substance Decoction)\nComposition: 当归 (Dang Gui, 9g), 川芎 (Chuan Xiong, 6g), 白芍 (Bai Shao, 9g), 熟地 (Shu Di, 9g)\nRoles: 当归 as Jun, 川芎 as Chen, 白芍 as Chen, 熟地 as Chen\nIndications: Blood deficiency patterns, menstrual disorders, dizziness, palpitations\nFunctions: Nourishes blood, regulates menstruation, invigorates blood\nPattern: Blood deficiency\n\nFormula: 六味地黄汤 (Liu Wei Di Huang Tang, Six-Ingredient Rehmannia Decoction)\nComposition: 熟地 (Shu Di, 24g), 山药 (Shan Yao, 12g), 山茱萸 (Shan Zhu Yu, 12g), 泽泻 (Ze Xie, 9g), 茯苓 (Fu Ling, 9g), 丹皮 (Dan Pi, 6g)\nRoles: 熟地 as Jun, 山药 as Chen, 山茱萸 as Chen, 泽泻 as Zuo, 茯苓 as Zuo, 丹皮 as Zuo\nIndications: Kidney yin deficiency, lower back pain, tinnitus, night sweats, dry mouth\nFunctions: Nourishes kidney yin, clears deficient heat\nPattern: Kidney yin deficiency\n\nNote: Query mentions herb 'gui zhi' - refer to relevant formulas for usage context",
+      "timestamp": "2026-06-14T02:46:51.206529"
+    }
+  ]
+}

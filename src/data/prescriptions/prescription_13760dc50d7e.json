@@ -1,0 +1,400 @@
+{
+  "id": "13760dc50d7e",
+  "user_email": "prof@tcm.org",
+  "timestamp": "2026-06-14T14:30:19.823047",
+  "query": "what is ma huang tang",
+  "response": "## Ma Huang Tang (麻黄汤)\n\n**Ma Huang Tang** [1] is a formula from the Shang Han Lun composed of **麻黄 (9g)**, **桂枝 (9g)**, **杏仁 (9g)**, and **甘草 (6g)** [1]. It is indicated for Tai Yang stage exterior cold patterns presenting with **no sweating, aversion to cold, fever, body aches, wheezing, and a floating tight pulse** [1]. Its functions are to release the exterior, promote perspiration, and relieve wheezing and coughing [1].",
+  "formulas": [
+    {
+      "names": {
+        "zh": "麻黄汤",
+        "pinyin": "Ma Huang Tang",
+        "en": "Ephedra Decoction"
+      },
+      "composition": [
+        {
+          "herb": "麻黄",
+          "pinyin": "Ma Huang",
+          "en": "Ephedra",
+          "dosage": "9g",
+          "role": "Jun (Chief)"
+        },
+        {
+          "herb": "桂枝",
+          "pinyin": "Gui Zhi",
+          "en": "Cinnamon Twig",
+          "dosage": "9g",
+          "role": "Chen (Minister)"
+        },
+        {
+          "herb": "杏仁",
+          "pinyin": "Xing Ren",
+          "en": "Apricot Kernel",
+          "dosage": "9g",
+          "role": "Zuo (Assistant)"
+        },
+        {
+          "herb": "甘草",
+          "pinyin": "Gan Cao",
+          "en": "Licorice Root",
+          "dosage": "6g",
+          "role": "Shi (Envoy)"
+        }
+      ],
+      "indications": "Exterior cold with wheezing, aversion to cold, fever, no sweating, body aches, floating tight pulse",
+      "functions": "Releases the exterior, promotes perspiration, relieves wheezing, stops coughing",
+      "pattern": "Tai Yang stage with cold"
+    },
+    {
+      "names": {
+        "zh": "桂枝汤",
+        "pinyin": "Gui Zhi Tang",
+        "en": "Cinnamon Twig Decoction"
+      },
+      "composition": [
+        {
+          "herb": "桂枝",
+          "pinyin": "Gui Zhi",
+          "en": "Cinnamon Twig",
+          "dosage": "9g",
+          "role": "Jun (Chief)"
+        },
+        {
+          "herb": "白芍",
+          "pinyin": "Bai Shao",
+          "en": "White Peony Root",
+          "dosage": "9g",
+          "role": "Chen (Minister)"
+        },
+        {
+          "herb": "生姜",
+          "pinyin": "Sheng Jiang",
+          "en": "Fresh Ginger",
+          "dosage": "9g",
+          "role": "Zuo (Assistant)"
+        },
+        {
+          "herb": "大枣",
+          "pinyin": "Da Zao",
+          "en": "Jujube",
+          "dosage": "3 pieces",
+          "role": "Zuo (Assistant)"
+        },
+        {
+          "herb": "甘草",
+          "pinyin": "Gan Cao",
+          "en": "Licorice Root",
+          "dosage": "6g",
+          "role": "Shi (Envoy)"
+        }
+      ],
+      "indications": "Exterior cold with sweating, mild fever, aversion to wind, floating slow pulse",
+      "functions": "Releases the exterior, harmonizes ying and wei",
+      "pattern": "Tai Yang stage with wind"
+    },
+    {
+      "names": {
+        "zh": "小青龙汤",
+        "pinyin": "Xiao Qing Long Tang",
+        "en": "Minor Blue Green Dragon Decoction"
+      },
+      "composition": [
+        {
+          "herb": "麻黄",
+          "pinyin": "Ma Huang",
+          "en": "Ephedra",
+          "dosage": "9g",
+          "role": "Jun"
+        },
+        {
+          "herb": "桂枝",
+          "pinyin": "Gui Zhi",
+          "en": "Cinnamon Twig",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "干姜",
+          "pinyin": "Gan Jiang",
+          "en": "Dried Ginger",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "细辛",
+          "pinyin": "Xi Xin",
+          "en": "Asarum",
+          "dosage": "3g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "五味子",
+          "pinyin": "Wu Wei Zi",
+          "en": "Schisandra",
+          "dosage": "6g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "白芍",
+          "pinyin": "Bai Shao",
+          "en": "White Peony",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "半夏",
+          "pinyin": "Ban Xia",
+          "en": "Pinellia",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "甘草",
+          "pinyin": "Gan Cao",
+          "en": "Licorice",
+          "dosage": "6g",
+          "role": "Shi"
+        }
+      ],
+      "indications": "Exterior cold with interior fluid retention, wheezing, profuse clear phlegm, cough",
+      "functions": "Releases exterior, warms the lungs, transforms phlegm, stops coughing",
+      "pattern": "Tai Yang with internal fluid retention"
+    },
+    {
+      "names": {
+        "zh": "大、小柴胡汤",
+        "pinyin": "Da Xiao Chai Hu Tang",
+        "en": "Major/Minor Bupleurum Decoction"
+      },
+      "composition": [
+        {
+          "herb": "柴胡",
+          "pinyin": "Chai Hu",
+          "en": "Bupleurum",
+          "dosage": "12-24g",
+          "role": "Jun"
+        },
+        {
+          "herb": "黄芩",
+          "pinyin": "Huang Qin",
+          "en": "Scutellaria",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "党参",
+          "pinyin": "Dang Shen",
+          "en": "Codonopsis",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "半夏",
+          "pinyin": "Ban Xia",
+          "en": "Pinellia",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "生姜",
+          "pinyin": "Sheng Jiang",
+          "en": "Fresh Ginger",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "大枣",
+          "pinyin": "Da Zao",
+          "en": "Jujube",
+          "dosage": "4 pieces",
+          "role": "Zuo"
+        },
+        {
+          "herb": "甘草",
+          "pinyin": "Gan Cao",
+          "en": "Licorice",
+          "dosage": "6g",
+          "role": "Shi"
+        }
+      ],
+      "indications": "Shaoyang stage pattern, alternating fever and chills, chest fullness, bitter taste, loss of appetite",
+      "functions": "Harmonizes Shaoyang, relieves alternating fever and chills",
+      "pattern": "Shaoyang stage"
+    },
+    {
+      "names": {
+        "zh": "白虎汤",
+        "pinyin": "Bai Hu Tang",
+        "en": "White Tiger Decoction"
+      },
+      "composition": [
+        {
+          "herb": "石膏",
+          "pinyin": "Shi Gao",
+          "en": "Gypsum",
+          "dosage": "30g",
+          "role": "Jun"
+        },
+        {
+          "herb": "知母",
+          "pinyin": "Zhi Mu",
+          "en": "Anemarrhena",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "甘草",
+          "pinyin": "Gan Cao",
+          "en": "Licorice",
+          "dosage": "6g",
+          "role": "Shi"
+        },
+        {
+          "herb": "粳米",
+          "pinyin": "Jing Mi",
+          "en": "Rice",
+          "dosage": "30g",
+          "role": "Shi"
+        }
+      ],
+      "indications": "Yangming stage with high fever, profuse sweating, severe thirst, large pulse",
+      "functions": "Clears heat, drains fire, relieves severe thirst",
+      "pattern": "Yangming stage - pure heat"
+    },
+    {
+      "names": {
+        "zh": "承气汤类",
+        "pinyin": "Cheng Qi Tang",
+        "en": "Purgative Decoctions"
+      },
+      "composition": [
+        {
+          "herb": "大黄",
+          "pinyin": "Da Huang",
+          "en": "Rhubarb",
+          "dosage": "12g",
+          "role": "Jun"
+        },
+        {
+          "herb": "芒硝",
+          "pinyin": "Mang Xiao",
+          "en": "Mirabilitum",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "厚朴",
+          "pinyin": "Hou Po",
+          "en": "Magnolia Bark",
+          "dosage": "24g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "枳实",
+          "pinyin": "Zhi Shi",
+          "en": "Immature Bitter Orange",
+          "dosage": "12g",
+          "role": "Zuo"
+        }
+      ],
+      "indications": "Yangming stage with internal heat accumulation, constipation, abdominal distension, tidal fever",
+      "functions": "Purges heat, empties the bowels, drains accumulation",
+      "pattern": "Yangming stage - heat accumulation"
+    },
+    {
+      "names": {
+        "zh": "四物汤",
+        "pinyin": "Si Wu Tang",
+        "en": "Four-Substance Decoction"
+      },
+      "composition": [
+        {
+          "herb": "当归",
+          "pinyin": "Dang Gui",
+          "en": "Angelica",
+          "dosage": "9g",
+          "role": "Jun"
+        },
+        {
+          "herb": "川芎",
+          "pinyin": "Chuan Xiong",
+          "en": "Chuanxiong",
+          "dosage": "6g",
+          "role": "Chen"
+        },
+        {
+          "herb": "白芍",
+          "pinyin": "Bai Shao",
+          "en": "White Peony",
+          "dosage": "9g",
+          "role": "Chen"
+        },
+        {
+          "herb": "熟地",
+          "pinyin": "Shu Di",
+          "en": "Rehmannia",
+          "dosage": "9g",
+          "role": "Chen"
+        }
+      ],
+      "indications": "Blood deficiency patterns, menstrual disorders, dizziness, palpitations",
+      "functions": "Nourishes blood, regulates menstruation, invigorates blood",
+      "pattern": "Blood deficiency"
+    },
+    {
+      "names": {
+        "zh": "六味地黄汤",
+        "pinyin": "Liu Wei Di Huang Tang",
+        "en": "Six-Ingredient Rehmannia Decoction"
+      },
+      "composition": [
+        {
+          "herb": "熟地",
+          "pinyin": "Shu Di",
+          "en": "Rehmannia",
+          "dosage": "24g",
+          "role": "Jun"
+        },
+        {
+          "herb": "山药",
+          "pinyin": "Shan Yao",
+          "en": "Chinese Yam",
+          "dosage": "12g",
+          "role": "Chen"
+        },
+        {
+          "herb": "山茱萸",
+          "pinyin": "Shan Zhu Yu",
+          "en": "Cornus",
+          "dosage": "12g",
+          "role": "Chen"
+        },
+        {
+          "herb": "泽泻",
+          "pinyin": "Ze Xie",
+          "en": "Alisma",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "茯苓",
+          "pinyin": "Fu Ling",
+          "en": "Poria",
+          "dosage": "9g",
+          "role": "Zuo"
+        },
+        {
+          "herb": "丹皮",
+          "pinyin": "Dan Pi",
+          "en": "Moutan",
+          "dosage": "6g",
+          "role": "Zuo"
+        }
+      ],
+      "indications": "Kidney yin deficiency, lower back pain, tinnitus, night sweats, dry mouth",
+      "functions": "Nourishes kidney yin, clears deficient heat",
+      "pattern": "Kidney yin deficiency"
+    }
+  ],
+  "message_id": "msg_1"
+}

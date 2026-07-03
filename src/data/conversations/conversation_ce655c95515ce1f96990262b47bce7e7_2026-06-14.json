@@ -1,0 +1,24 @@
+{
+  "session_id": "ce655c95515ce1f96990262b47bce7e7",
+  "user_email": "prof@tcm.org",
+  "timestamp": "2026-06-14T02:46:49.281777",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is Ma Huang?",
+      "timestamp": "2026-06-14T02:46:47.483623"
+    },
+    {
+      "role": "assistant",
+      "content": "## Ma Huang  \nMa Huang (Ephedra) is the **Jun (Chief)** herb in **麻黄汤 (Ma Huang Tang)** [1], typically dosed at **9g**. It functions to release the exterior, promote sweating, and relieve wheezing, indicated for **Tai Yang stage cold patterns** with symptoms like aversion to cold, fever, no sweating, body aches, and a floating tight pulse [1].",
+      "sources": [
+        "Shang Han Lun - Liu Wei Di Huang Tang",
+        "Shang Han Lun - Da Xiao Chai Hu Tang",
+        "Shang Han Lun - Ma Huang Tang",
+        "Shang Han Lun - Bai Hu Tang"
+      ],
+      "context": "Formula: 麻黄汤 (Ma Huang Tang, Ephedra Decoction)\nComposition: 麻黄 (Ma Huang, 9g), 桂枝 (Gui Zhi, 9g), 杏仁 (Xing Ren, 9g), 甘草 (Gan Cao, 6g)\nRoles: 麻黄 as Jun (Chief), 桂枝 as Chen (Minister), 杏仁 as Zuo (Assistant), 甘草 as Shi (Envoy)\nIndications: Exterior cold with wheezing, aversion to cold, fever, no sweating, body aches, floating tight pulse\nFunctions: Releases the exterior, promotes perspiration, relieves wheezing, stops coughing\nPattern: Tai Yang stage with cold\n\nFormula: 大、小柴胡汤 (Da Xiao Chai Hu Tang, Major/Minor Bupleurum Decoction)\nComposition: 柴胡 (Chai Hu, 12-24g), 黄芩 (Huang Qin, 9g), 党参 (Dang Shen, 9g), 半夏 (Ban Xia, 9g), 生姜 (Sheng Jiang, 9g), 大枣 (Da Zao, 4 pieces), 甘草 (Gan Cao, 6g)\nRoles: 柴胡 as Jun, 黄芩 as Chen, 党参 as Chen, 半夏 as Zuo, 生姜 as Zuo, 大枣 as Zuo, 甘草 as Shi\nIndications: Shaoyang stage pattern, alternating fever and chills, chest fullness, bitter taste, loss of appetite\nFunctions: Harmonizes Shaoyang, relieves alternating fever and chills\nPattern: Shaoyang stage\n\nFormula: 白虎汤 (Bai Hu Tang, White Tiger Decoction)\nComposition: 石膏 (Shi Gao, 30g), 知母 (Zhi Mu, 9g), 甘草 (Gan Cao, 6g), 粳米 (Jing Mi, 30g)\nRoles: 石膏 as Jun, 知母 as Chen, 甘草 as Shi, 粳米 as Shi\nIndications: Yangming stage with high fever, profuse sweating, severe thirst, large pulse\nFunctions: Clears heat, drains fire, relieves severe thirst\nPattern: Yangming stage - pure heat\n\nFormula: 六味地黄汤 (Liu Wei Di Huang Tang, Six-Ingredient Rehmannia Decoction)\nComposition: 熟地 (Shu Di, 24g), 山药 (Shan Yao, 12g), 山茱萸 (Shan Zhu Yu, 12g), 泽泻 (Ze Xie, 9g), 茯苓 (Fu Ling, 9g), 丹皮 (Dan Pi, 6g)\nRoles: 熟地 as Jun, 山药 as Chen, 山茱萸 as Chen, 泽泻 as Zuo, 茯苓 as Zuo, 丹皮 as Zuo\nIndications: Kidney yin deficiency, lower back pain, tinnitus, night sweats, dry mouth\nFunctions: Nourishes kidney yin, clears deficient heat\nPattern: Kidney yin deficiency\n\nNote: Query mentions herb 'ma huang' - refer to relevant formulas for usage context",
+      "timestamp": "2026-06-14T02:46:49.281758"
+    }
+  ]
+}

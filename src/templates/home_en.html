@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shanghan-TCM Evidence - Expert TCM Assistant</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <style>
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: var(--space-2xl) 0;
+            margin-bottom: var(--space-2xl);
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: var(--space-md);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-xl);
+            margin: var(--space-2xl) 0;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-base);
+            text-align: center;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .feature-card h3 {
+            color: var(--gray-800);
+            margin-bottom: var(--space-md);
+        }
+        
+        .feature-card p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+        }
+        
+        .language-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0 var(--space-sm) var(--space-sm) 0;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-2xl);
+            margin: var(--space-2xl) 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .testimonial {
+            background: var(--gray-100);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            margin: var(--space-2xl) 0;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .testimonial-text {
+            font-size: 1.125rem;
+            font-style: italic;
+            color: var(--gray-700);
+            margin-bottom: var(--space-md);
+        }
+        
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: var(--space-2xl) 0;
+            background: var(--gray-50);
+            border-radius: var(--radius-xl);
+            margin: var(--space-2xl) 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: var(--space-xl) 0;
+            color: var(--gray-600);
+            border-top: 1px solid var(--gray-200);
+            margin-top: var(--space-2xl);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.125rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                gap: var(--space-xl);
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-leaf" style="color: var(--primary);"></i>
+                Shanghan-TCM Evidence
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="language-switcher">
+                    <a href="/" style="margin-right: 0.5rem; color: var(--gray-700); text-decoration: none;">Chinese</a>
+                    <span style="color: var(--gray-400);">|</span>
+                    <a href="/en" style="margin-left: 0.5rem; color: var(--gray-700); text-decoration: none;">English</a>
+                </div>
+                <a href="/en/login" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Shanghan-TCM Evidence</h1>
+                <p class="hero-subtitle">Expert-Level Traditional Chinese Medicine Assistant</p>
+                <div>
+                    <span class="language-badge">Chinese</span>
+                    <span class="language-badge">English</span>
+                    <span class="language-badge">Classical Texts</span>
+                    <span class="language-badge">AI-Powered</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number">112</span>
+                <span class="stat-label">Classical Formulas</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">6</span>
+                <span class="stat-label">Pattern Stages</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">100+</span>
+                <span class="stat-label">Herb Profiles</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Availability</span>
+            </div>
+        </div>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-prescription-bottle-alt"></i>
+                </div>
+                <h3>Formula Knowledge</h3>
+                <p>Detailed information on 112 classical Shang Han Lun formulas, including composition, dosage, indications, and modifications.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <h3>Pattern Diagnosis</h3>
+                <p>Six-channel pattern differentiation with symptom analysis and treatment principles for accurate diagnosis.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-language"></i>
+                </div>
+                <h3>Bilingual Support</h3>
+                <p>Ask questions in Chinese or English. The system understands classical terminology and modern clinical language.</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>What I Can Do</h2>
+            <p>I am an AI-powered assistant specialized in the Shang Han Lun (Treatise on Cold Damage). You can ask me about:</p>
+            
+            <ul style="margin-left: 1.5rem; color: var(--gray-700); margin-bottom: var(--space-lg);">
+                <li style="margin-bottom: var(--space-sm);">Prescription compositions and their therapeutic effects</li>
+                <li style="margin-bottom: var(--space-sm);">Pattern diagnoses and differential diagnoses</li>
+                <li style="margin-bottom: var(--space-sm);">Clause interpretations and clinical applications</li>
+                <li style="margin-bottom: var(--space-sm);">Formula modifications for specific presentations</li>
+                <li style="margin-bottom: var(--space-sm);">Symptom-pattern-formula relationships</li>
+                <li style="margin-bottom: var(--space-sm);">Herb properties and combinations</li>
+                <li style="margin-bottom: var(--space-sm);">Case analysis and treatment planning</li>
+            </ul>
+            
+            <p>Ask in Chinese or English — I understand both languages and can respond accordingly, preserving classical terminology while providing modern clinical context.</p>
+        </section>
+
+        <section class="testimonial">
+            <p class="testimonial-text">"This system has transformed how I approach classical formula selection in my practice. The bilingual capability is particularly valuable for international students."</p>
+            <p class="testimonial-author">— Dr. Chen, TCM Practitioner</p>
+        </section>
+
+        <section class="cta-section">
+            <h2>Ready to Explore Classical TCM?</h2>
+            <p class="mb-3">Access expert-level TCM knowledge with secure professional authentication.</p>
+            <a href="/en/login" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.125rem;">
+                <i class="fas fa-sign-in-alt"></i> Sign In to Continue
+            </a>
+            <p class="mt-3" style="font-size: 0.875rem; color: var(--gray-600);">
+                Professional access required. Contact admin for credentials.
+            </p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>A WASFS Nonprofit Project • Dedicated to Preserving Classical TCM Knowledge</p>
+            <p class="mt-2" style="font-size: 0.875rem; color: var(--gray-500);">
+                Shanghan-TCM Evidence v1 • Secure, Expert-Level Assistant
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

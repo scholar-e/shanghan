@@ -23,6 +23,7 @@ def playwright_server():
     env = os.environ.copy()
     env['PORT'] = str(PORT)
     env['FLASK_DEBUG'] = 'false'
+    env['SECRET_KEY'] = 'test-secret-key-for-pytest'
     
     server_process = subprocess.Popen(
         [sys.executable, 'server.py'],

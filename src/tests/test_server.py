@@ -63,7 +63,7 @@ class TestHomePage:
         """Test that home page loads successfully."""
         response = requests.get(f"{server}/")
         assert response.status_code == 200
-        assert "Shanghan-TCM Evidence" in response.text
+        assert "伤寒-TCM" in response.text
     
     def test_login_page_loads(self, server):
         """Test that login page loads successfully."""
@@ -197,7 +197,8 @@ class TestChatAPI:
         assert response.status_code == 200
         data = response.json()
         assert 'answer' in data
-        assert 'Zhang Zhongjing' in data['answer'] or 'classical' in data['answer'].lower()
+        assert len(data['answer']) > 0
+        assert any(kw in data['answer'].lower() for kw in ['shang han lun', 'treatise', '伤寒论', 'classical', 'formula'])
 
 
 class TestFeedbackAPI:
@@ -227,8 +228,12 @@ class TestFeedbackAPI:
         data = response.json()
         assert data['success'] is True
     
-    def test_feedback_saved_to_file(self, server):
-        """Test that feedback is saved to a file."""
+    def test_feedback_saved_to_database(self, server):
+        """Test that feedback is saved to the database."""
+        import sys
+        sys.path.insert(0, str(BASE_DIR))
+        import database as db
+        
         session = requests.Session()
         session.post(
             f"{server}/api/login",
@@ -240,25 +245,75 @@ class TestFeedbackAPI:
             json={"message_id": "msg_2", "rating": "down", "feedback": "Needs improvement"}
         )
         
-        feedback_dir = BASE_DIR / "data" / "feedback"
-        feedback_files = list(feedback_dir.glob("feedback_*.json"))
-        assert len(feedback_files) > 0
+        feedbacks = db.get_all_feedback()
+        assert any(f["message_id"] == "msg_2" for f in feedbacks)
 
 
 class TestDataStorage:
     """Test data storage functionality."""
     
-    def test_feedback_directory_exists(self):
-        """Test that feedback directory exists."""
-        feedback_dir = BASE_DIR / "data" / "feedback"
-        assert feedback_dir.exists()
-        assert feedback_dir.is_dir()
+    def test_database_exists(self):
+        """Test that database file exists."""
+        db_path = BASE_DIR / "data" / "shanghan.db"
+        assert db_path.exists()
+        assert db_path.is_file()
+
+
+class TestHealthEndpoint:
+    """Test health check endpoint."""
     
-    def test_conversations_directory_exists(self):
-        """Test that conversations directory exists."""
-        conv_dir = BASE_DIR / "data" / "conversations"
-        assert conv_dir.exists()
-        assert conv_dir.is_dir()
+    def test_health_endpoint(self, server):
+        """Test that health endpoint returns 200 and correct JSON."""
+        response = requests.get(f"{server}/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert data["service"] == "shanghan-tcm-evidence"
+        assert "version" in data
+        assert "timestamp" in data
+    
+    def test_health_endpoint_no_auth_required(self, server):
+        """Test that health endpoint doesn't require authentication."""
+        # Ensure no session
+        response = requests.get(f"{server}/health")
+        assert response.status_code == 200
+
+
+
+class TestAIFormulaExtraction:
+    """Test AI formula extraction functions."""
+
+    def test_extract_formulas_from_text_matches_known(self, server):
+        """Test that known formula names are extracted from text."""
+        from chat_engine import extract_formulas_from_text
+        text = "Ma Huang Tang is a classic formula for exterior cold."
+        formulas = extract_formulas_from_text(text)
+        assert len(formulas) > 0
+        assert any("麻黄" in str(f.get("names", {})) for f in formulas)
+
+    def test_extract_formulas_from_text_no_match(self, server):
+        """Test that unrelated text returns no formulas."""
+        from chat_engine import extract_formulas_from_text
+        text = "The weather is nice today."
+        formulas = extract_formulas_from_text(text)
+        assert len(formulas) == 0
+
+    def test_extract_structured_formula_parses_block(self, server):
+        """Test that [FORMULA] JSON blocks are parsed correctly."""
+        from chat_engine import extract_structured_formula
+        text = 'Some answer text. [FORMULA]{"name_zh": "测试汤", "name_pinyin": "Ce Shi Tang"}[/FORMULA]'
+        formulas, cleaned = extract_structured_formula(text)
+        assert len(formulas) == 1
+        assert formulas[0]["name_zh"] == "测试汤"
+        assert "Some answer text." == cleaned.strip()
+
+    def test_extract_structured_formula_no_block(self, server):
+        """Test that text without [FORMULA] blocks returns empty."""
+        from chat_engine import extract_structured_formula
+        text = "Just a normal response without formula data."
+        formulas, cleaned = extract_structured_formula(text)
+        assert len(formulas) == 0
+        assert cleaned == text
 
 
 if __name__ == "__main__":

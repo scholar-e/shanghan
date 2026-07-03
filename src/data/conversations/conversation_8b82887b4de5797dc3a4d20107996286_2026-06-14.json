@@ -1,0 +1,21 @@
+{
+  "session_id": "8b82887b4de5797dc3a4d20107996286",
+  "user_email": "prof@tcm.org",
+  "timestamp": "2026-06-14T02:46:54.472804",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the Shang Han Lun?",
+      "timestamp": "2026-06-14T02:46:51.210675"
+    },
+    {
+      "role": "assistant",
+      "content": "## The Shang Han Lun\nThe **Shang Han Lun** is a foundational Traditional Chinese Medicine text from the Han Dynasty, organizing 112 formulas by the **Six Channel pattern identification system** (六经辨证) [1]. It provides classical formulas like **Gui Zhi Tang** (Cinnamon Twig Decoction) for Taiyang channel wind-strike patterns, typically dosed at 9g each of Gui Zhi and Bai Shao [2], and **Ma Huang Tang** (Ephedra Decoction) for cold excess patterns [3]. Its core focus is treating externally-contracted cold damage diseases through precise pattern differentiation [1].",
+      "sources": [
+        "Shang Han Lun - General Reference"
+      ],
+      "context": "General reference: The Shang Han Lun contains 112 classical formulas organized by the Six Channel (六经辨证) pattern identification system.",
+      "timestamp": "2026-06-14T02:46:54.472784"
+    }
+  ]
+}

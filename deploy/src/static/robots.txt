@@ -1,0 +1,13 @@
+# Robots.txt for Shanghan-TCM Evidence
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /health
+
+# Sitemap: https://your-domain.com/sitemap.xml
+# Note: Uncomment and update the sitemap URL when deploying to production.
+
+# Crawl-delay: 10
+# Note: This is a secure application with authentication.
+# Admin and API endpoints are restricted.
