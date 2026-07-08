@@ -420,6 +420,10 @@ def api_search():
     if not query:
         return jsonify({'query': query, 'formulas': {}, 'lessons': [], 'articles': [], 'terminology': [], 'total': 0})
 
+    parsed_terms = db.parse_text_query(query)
+    if any(term.isdigit() for term in parsed_terms):
+        mode = 'text'
+
     # ── Formulas ──
     formula_results = []
     for key, formula in FORMULAS.items():
@@ -477,26 +481,57 @@ def api_search():
                 'en': info.get('en', '')
             })
 
-    # ── Articles (原文) ──
+    # ── Articles (原文) — only in text mode ──
     article_results = []
-    try:
-        for r in db.search_articles(query):
-            article_results.append({
-                'article_num': r['article_num'],
-                'channel': r['channel'],
-                'original_zh': r['original_zh'][:200],
-                'translation_en': r['translation_en'][:200]
-            })
-    except Exception:
-        pass
+    fuling_results = []
+    if mode == 'text':
+        try:
+            for r in db.search_articles(query):
+                fuling = None
+                try:
+                    fl = db.get_fuling_by_song_article(r['article_num'])
+                    if fl:
+                        f = fl[0]
+                        fuling = {
+                            'fuling_article_num': f['fuling_article_num'],
+                            'fuling_zh': f['fuling_zh'],
+                            'song_zh': f['song_zh']
+                        }
+                except Exception:
+                    pass
+                article_results.append({
+                    'article_num': r['article_num'],
+                    'channel': r['channel'],
+                    'original_zh': r['original_zh'],
+                    'translation_en': r['translation_en'],
+                    'fuling': fuling
+                })
+        except Exception:
+            pass
 
-    total = len(formula_results) + len(term_results) + len(article_results)
-    logger.info(f"Search: q='{query}' => {len(formula_results)} formulas, {len(term_results)} terms, {len(article_results)} articles")
+        # ── Fuling Articles (涪陵古本 原文) ──
+        try:
+            for r in db.search_fuling_articles(query):
+                fuling_results.append({
+                    'fuling_article_num': r['fuling_article_num'],
+                    'fuling_zh': r['fuling_zh'],
+                    'song_article_num': r['song_article_num'],
+                    'song_zh': r['song_zh'],
+                    'channel': r['channel']
+                })
+        except Exception:
+            pass
+
+    total = len(formula_results) + len(term_results) + len(article_results) + len(fuling_results)
+    logger.info(f"Search: q='{query}' => {len(formula_results)} formulas, {len(term_results)} terms, {len(article_results)} song articles, {len(fuling_results)} yuanben articles")
     return jsonify({
         'query': query,
         'formulas': formula_categories,
+        'categories': formula_categories,
         'terminology': term_results,
         'articles': article_results,
+        'fuling_articles': fuling_results,
+        'yuanben_articles': fuling_results,
         'total': total,
     })
 
@@ -522,6 +557,12 @@ def debug_context():
         return jsonify({'error': 'Provide ?q=query'}), 400
     from chat_engine import build_context
     ctx, sources = build_context(q)
+    # Check for Fuling articles in DB
+    fuling_matches = []
+    try:
+        fuling_matches = [{'article_num': r['fuling_article_num'], 'fuling_zh': r['fuling_zh'][:100]} for r in db.search_fuling_articles(q)]
+    except Exception:
+        pass
     return jsonify({
         'query': q,
         'source_count': len(sources),
@@ -530,7 +571,8 @@ def debug_context():
             {'type': s['type'], 'title': s['title'], 'key': s.get('key', '')}
             for s in sources
         ],
-        'context_preview': ctx[:500]
+        'context_preview': ctx[:500],
+        'fuling_matches': fuling_matches
     })
 
 

@@ -429,9 +429,9 @@
             background: white;
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow-xl);
-            max-width: 600px;
+            max-width: min(600px, 90vw);
             width: 100%;
-            max-height: 80vh;
+            max-height: min(80vh, 85vh);
             overflow-y: auto;
             position: relative;
             animation: popupAppear 0.2s ease-out;
@@ -453,11 +453,22 @@
             padding: 0.25rem;
             transition: color var(--transition-fast);
         }
+        .search-clickable {
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .search-clickable:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
         .formula-popup-close:hover {
             color: var(--gray-800);
         }
-        #formulaPopupBody {
+        #formulaPopupBody,
+        #articlePopupBody,
+        #citationPopupBody {
             padding: 1.5rem;
+            padding-top: 2.5rem;
         }
         .fp-formula + .fp-formula {
             margin-top: 1.5rem;
@@ -1179,14 +1190,14 @@
         <div class="tab-page">
             <div class="search-box">
                 <input type="text" class="search-input" id="search-input"
-                       placeholder="搜索方剂或草药..."
+                       placeholder="搜索方剂、原文或关键词..."
                        onkeypress="if(event.key==='Enter') doSearch()">
-                <button class="search-btn" onclick="doSearch()">搜索</button>
+                <button class="search-btn" id="search-btn" type="button">搜索</button>
             </div>
             <div class="search-mode-toggle">
-                <label id="mode-name-label" class="active">方剂名</label>
-                <div class="toggle-switch" id="mode-toggle" onclick="toggleSearchMode()"></div>
-                <label id="mode-text-label">全文</label>
+                <label id="mode-name-label">方剂</label>
+                <div class="toggle-switch active" id="mode-toggle" onclick="toggleSearchMode()"></div>
+                <label id="mode-text-label" class="active">原文+方剂</label>
             </div>
             <div class="search-results" id="search-results">
                 <div class="result-item" style="color: var(--gray-600); text-align: center; padding: 2rem;">
@@ -1209,6 +1220,22 @@
         <div class="formula-popup" id="formulaPopupContent">
             <button class="formula-popup-close" onclick="closeFormulaPopup()">&times;</button>
             <div id="formulaPopupBody"></div>
+        </div>
+    </div>
+
+    <!-- Article popup modal -->
+    <div class="formula-popup-overlay" id="articlePopup" onclick="closeArticlePopup(event)">
+        <div class="formula-popup" style="max-width: 800px;">
+            <button class="formula-popup-close" onclick="closeArticlePopup()">&times;</button>
+            <div id="articlePopupBody"></div>
+        </div>
+    </div>
+
+    <!-- Citation popup modal (full screen) -->
+    <div class="formula-popup-overlay" id="citationPopup" onclick="closeCitationPopup(event)">
+        <div class="formula-popup" style="max-width: 700px;">
+            <button class="formula-popup-close" onclick="closeCitationPopup()">&times;</button>
+            <div id="citationPopupBody"></div>
         </div>
     </div>
 
@@ -1579,11 +1606,12 @@
             return html;
         }
 
-        // Show citation popup with reference text
+        // Show citation popup with reference text (full-screen modal)
         function showCitationPopup(event, num) {
             event.preventDefault();
-            const existing = document.querySelector('.citation-popup');
-            if (existing) existing.remove();
+            const overlay = document.getElementById('citationPopup');
+            const body = document.getElementById('citationPopupBody');
+            if (!overlay || !body) return;
 
             const source = currentSources[num - 1];
             if (!source) return;
@@ -1591,44 +1619,22 @@
             const title = typeof source === 'string' ? source : source.title;
             const content = typeof source === 'string' ? null : source.content;
 
-            const popup = document.createElement('div');
-            popup.className = 'citation-popup';
-            popup.innerHTML = `
-                <div class="popup-header">
-                    <span>参考文献 ${num}</span>
-                    <button class="popup-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
-                </div>
-                <div class="popup-title">${escapeHtml(title)}</div>
-                ${content ? `<div class="popup-content">${escapeHtml(content)}</div>` : ''}
+            body.innerHTML = `
+                <div style="font-size:1.2rem;font-weight:700;color:var(--gray-900);margin-bottom:1rem;">参考文献 ${num}</div>
+                <div style="font-size:1rem;color:var(--gray-700);margin-bottom:1rem;font-weight:600;">${escapeHtml(title)}</div>
+                ${content ? `<div style="font-size:0.95rem;color:var(--gray-600);line-height:1.7;white-space:pre-wrap;background:var(--gray-50);padding:1rem;border-radius:8px;max-height:50vh;overflow-y:auto;">${escapeHtml(content)}</div>` : '<div style="color:var(--gray-400);">无详细内容</div>'}
             `;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
 
-            document.body.appendChild(popup);
-
-            const rect = event.target.getBoundingClientRect();
-            const popupRect = popup.getBoundingClientRect();
-
-            let left = rect.left + rect.width / 2 - popupRect.width / 2;
-            let top = rect.bottom + 6;
-
-            if (left < 8) left = 8;
-            if (left + popupRect.width > window.innerWidth - 8) {
-                left = window.innerWidth - popupRect.width - 8;
+        function closeCitationPopup(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const overlay = document.getElementById('citationPopup');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
             }
-            if (top + popupRect.height > window.innerHeight - 8) {
-                top = rect.top - popupRect.height - 6;
-            }
-
-            popup.style.left = left + 'px';
-            popup.style.top = top + 'px';
-
-            setTimeout(() => {
-                document.addEventListener('click', function closeHandler(e) {
-                    if (!popup.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closeHandler);
-                    }
-                });
-            }, 0);
         }
 
         // Show prescription saved notification
@@ -1706,6 +1712,65 @@
             }
         }
 
+        // Open article popup with full text (side-by-side editions)
+        function openArticlePopup(article) {
+            const overlay = document.getElementById('articlePopup');
+            const body = document.getElementById('articlePopupBody');
+            if (!overlay || !body) return;
+
+            const songText = escapeHtml(article.original_zh);
+            const songEn = article.translation_en ? escapeHtml(article.translation_en) : '';
+            const fulingText = article.fuling ? escapeHtml(article.fuling.fuling_zh) : '';
+            const fulingNum = article.fuling ? article.fuling.fuling_article_num : '';
+            const fulingSongRef = (article.fuling && article.fuling.song_zh) ? escapeHtml(article.fuling.song_zh) : '';
+
+            let html = '';
+            html += `<div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:0.75rem;">Article ${article.article_num} <span style="font-size:0.8rem;color:var(--gray-500);font-weight:400;">[${article.channel}]</span></div>`;
+
+            if (article.fuling) {
+                html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">`;
+                // Song column
+                html += `<div style="background:var(--gray-50);border-radius:8px;padding:0.75rem;border:1px solid var(--gray-200);">`;
+                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒论》</div>`;
+                html += `<div style="font-size:0.9rem;color:var(--gray-800);line-height:1.6;">${songText}</div>`;
+                if (songEn) {
+                    html += `<div style="font-size:0.8rem;color:var(--gray-500);line-height:1.5;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--gray-200);">${songEn}</div>`;
+                }
+                html += `</div>`;
+                // Fuling column
+                html += `<div style="background:#fff8f0;border-radius:8px;padding:0.75rem;border:1px solid #f0dcc0;">`;
+                html += `<div style="font-size:0.85rem;font-weight:600;color:#b8860b;margin-bottom:0.5rem;">涪陵古本 第${fulingNum}条</div>`;
+                html += `<div style="font-size:0.9rem;color:var(--gray-800);line-height:1.6;">${fulingText}</div>`;
+                if (fulingSongRef) {
+                    html += `<div style="font-size:0.8rem;color:var(--gray-500);margin-top:0.5rem;padding-top:0.5rem;border-top:1px dashed var(--gray-200);">宋本：${fulingSongRef}</div>`;
+                }
+                html += `</div>`;
+                html += `</div>`;
+            } else {
+                // No Fuling equivalent — just show Song
+                html += `<div style="background:var(--gray-50);border-radius:8px;padding:0.75rem;border:1px solid var(--gray-200);">`;
+                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒论》</div>`;
+                html += `<div style="font-size:0.9rem;color:var(--gray-800);line-height:1.6;">${songText}</div>`;
+                if (songEn) {
+                    html += `<div style="font-size:0.8rem;color:var(--gray-500);line-height:1.5;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--gray-200);">${songEn}</div>`;
+                }
+                html += `</div>`;
+            }
+
+            body.innerHTML = html;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeArticlePopup(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const overlay = document.getElementById('articlePopup');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
         // Tab switching
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -1730,7 +1795,7 @@
         });
         
         // Search mode toggle
-        let searchMode = 'name';
+        let searchMode = 'text';
 
         function toggleSearchMode() {
             const toggle = document.getElementById('mode-toggle');
@@ -1774,12 +1839,15 @@
                 }
 
                 let html = `<div class="search-count">找到 ${data.total} 条结果</div>`;
+                html += `<div id="search-results-data" style="display:none;">${escapeHtml(JSON.stringify(data))}</div>`;
+
+                // Formulas
                 for (const [category, formulas] of Object.entries(data.categories)) {
                     html += `<div class="search-category-header">— ${category} —</div>`;
                     for (const f of formulas) {
                         const compHerbs = f.composition.map(h => h.herb).join('、');
                         html += `
-                            <div class="search-formula-card">
+                            <div class="search-formula-card search-clickable" data-result-type="formula" data-result-key="${escapeHtml(f.key)}">
                                 <div class="sf-name">${f.names.zh} ${f.names.pinyin} <span class="sf-en">${f.names.en}</span></div>
                                 <div class="sf-composition">组成：${compHerbs}</div>
                                 <div class="sf-indications">主治：${f.indications}</div>
@@ -1787,7 +1855,71 @@
                             </div>`;
                     }
                 }
+
+                // Song original text
+                if (data.articles && data.articles.length) {
+                    html += `<div class="search-category-header">— 原文：宋本《伤寒论》 —</div>`;
+                    for (const a of data.articles) {
+                        html += `<div class="search-formula-card search-clickable" data-result-type="song_article" data-result-index="${data.articles.indexOf(a)}">`;
+                        html += `<div class="sf-name">第 ${a.article_num} 条 [${a.channel}]</div>`;
+                        html += `<div class="sf-composition">宋本：${a.original_zh}</div>`;
+                        if (a.fuling) {
+                            html += `<div class="sf-indications">涪陵古本 ${a.fuling.fuling_article_num}：${a.fuling.fuling_zh}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+
+                // Fuling original text
+                if (data.fuling_articles && data.fuling_articles.length) {
+                    html += `<div class="search-category-header">— 原文：原本/涪陵古本《伤寒杂病论》 —</div>`;
+                    for (const f of data.fuling_articles) {
+                        html += `<div class="search-formula-card search-clickable" data-result-type="fuling_article" data-result-index="${data.fuling_articles.indexOf(f).toString()}">`;
+                        html += `<div class="sf-name">涪陵古本第 ${f.fuling_article_num} 条</div>`;
+                        html += `<div class="sf-composition">${f.fuling_zh}</div>`;
+                        if (f.song_article_num) {
+                            html += `<div class="sf-indications">→ 宋本第 ${f.song_article_num} 条</div>`;
+                        } else {
+                            html += `<div class="sf-indications">（宋本无此条）</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+
                 results.innerHTML = html;
+
+                // Attach click handlers to search results
+                results.querySelectorAll('.search-clickable').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const type = this.dataset.resultType;
+                        const dataEl = document.getElementById('search-results-data');
+                        if (!dataEl) return;
+                        try {
+                            const searchData = JSON.parse(dataEl.textContent);
+                            if (type === 'formula') {
+                                const key = this.dataset.resultKey;
+                                openFormulaPopup([key]);
+                            } else if (type === 'song_article') {
+                                const idx = parseInt(this.dataset.resultIndex);
+                                const article = searchData.articles[idx];
+                                if (article) openArticlePopup(article);
+                            } else if (type === 'fuling_article') {
+                                const idx = parseInt(this.dataset.resultIndex);
+                                const fa = searchData.fuling_articles[idx];
+                                if (fa) openArticlePopup({
+                                    article_num: fa.fuling_article_num,
+                                    channel: fa.channel || '?',
+                                    original_zh: fa.fuling_zh,
+                                    translation_en: '',
+                                    fuling: fa.song_article_num ? {
+                                        fuling_article_num: fa.song_article_num,
+                                        fuling_zh: fa.song_zh
+                                    } : null
+                                });
+                            }
+                        } catch(e) {}
+                    });
+                });
             } catch (err) {
                 results.innerHTML = `
                     <div class="result-item" style="color: var(--error); text-align: center; padding: 2rem;">
@@ -1796,6 +1928,8 @@
                 `;
             }
         }
+        window.doSearch = doSearch;
+        document.getElementById('search-btn')?.addEventListener('click', doSearch);
         
         // Formulas (placeholder for v1 UI similarity)
         async function loadFormulas() {

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Environment
 .env
 .env.*
@@ -8,19 +7,25 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+.venv
 .venv/*
 venv/
 *.egg
 
 # IDE
-=======
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# C extensions
-*.so
+# Log files
+*.log
+logs/
+src/logs/
+
+# Runtime data
+src/data/*.db
 
 # Distribution / packaging
 .Python
@@ -105,6 +110,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.venv/*
 env/
 venv/
 ENV/
@@ -141,33 +147,12 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 
-# IDE files
->>>>>>> 4e82ade28bc6cdd2d30515375181961fcb3f70d8
-.vscode/
-.idea/
-*.swp
-*.swo
-<<<<<<< HEAD
-*~
-
-# Logs
-src/logs/
-*.log
-
-# Runtime data
-src/data/*.db
-
 # OS
 .DS_Store
 Thumbs.db
 
 # Deployment artifacts
 *.tar.gz
-=======
-
-# Log files
-*.log
-logs/
 
 # Temporary files
 *.tmp
@@ -184,6 +169,3 @@ logs/
 
 # Project specific
 server.py
-#AddedLabel_lesson_files-*.zip
-#Orign_lesson_files-*.zip
->>>>>>> 4e82ade28bc6cdd2d30515375181961fcb3f70d8

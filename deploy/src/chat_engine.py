@@ -63,7 +63,7 @@ SEARCH_TOOLS = [
         "type": "function",
         "function": {
             "name": "search_articles",
-            "description": "Search the original Shang Han Lun articles (原文/条文) by article number, keyword, or channel. Use when the user quotes or asks about specific 原文 text from the Shang Han Lun.",
+            "description": "Search both Song edition (宋本) and Yuanben/Fuling ancient edition (原本/涪陵古本) original text by article number, keyword, or channel. Use when the user quotes or asks about specific 原文 text from the Shang Han Lun.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -77,13 +77,41 @@ SEARCH_TOOLS = [
         "type": "function",
         "function": {
             "name": "get_article",
-            "description": "Get a specific Shang Han Lun article by its article number. Use when the user references a specific article number like 'article 73' or '条文73'.",
+            "description": "Get a specific Shang Han Lun article by its Song edition article number (宋本). Use when the user references a specific article number like 'article 73' or '条文73'.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "article_num": {"type": "integer", "description": "Article number (1-234)"}
+                    "article_num": {"type": "integer", "description": "Song edition article number (1-398)"}
                 },
                 "required": ["article_num"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_fuling_article",
+            "description": "Get a specific Shang Han Lun article by its Fuling Ancient Edition article number (涪陵古本篇号). Use when the user references a Fuling article number like '涪陵古本 73'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "article_num": {"type": "integer", "description": "Fuling Ancient Edition article number (1-396)"}
+                },
+                "required": ["article_num"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_fuling_articles",
+            "description": "Search the Fuling Ancient Edition (涪陵古本) articles by keyword or article number.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Keyword in Chinese/English, article number, or channel name"}
+                },
+                "required": ["query"]
             }
         }
     }
@@ -123,17 +151,30 @@ def tool_search_terminology(query):
 
 
 def tool_search_articles(query):
-    results = db.search_articles(query)
-    if not results:
-        return json.dumps({"message": "No matching articles found."}, ensure_ascii=False)
-    out = []
-    for r in results[:5]:
-        out.append({
+    song_results = db.search_articles(query)
+    yuanben_results = db.search_fuling_articles(query)
+    if not song_results and not yuanben_results:
+        return json.dumps({"message": "No matching original text found."}, ensure_ascii=False)
+
+    out = {
+        "songben": [],
+        "yuanben": [],
+    }
+    for r in song_results[:5]:
+        out["songben"].append({
             "article_num": r["article_num"],
             "channel": r["channel"],
             "pattern": r["pattern"],
             "original_zh": r["original_zh"],
             "translation_en": r["translation_en"]
+        })
+    for r in yuanben_results[:5]:
+        out["yuanben"].append({
+            "article_num": r["fuling_article_num"],
+            "original_zh": r["fuling_zh"],
+            "song_article_num": r["song_article_num"],
+            "song_zh": r["song_zh"],
+            "channel": r["channel"],
         })
     return json.dumps(out, indent=2, ensure_ascii=False)
 
@@ -145,11 +186,36 @@ def tool_get_article(article_num):
     return json.dumps(dict(r), indent=2, ensure_ascii=False)
 
 
+def tool_get_fuling_article(article_num):
+    r = db.get_fuling_article(article_num)
+    if not r:
+        return json.dumps({"error": f"Fuling article {article_num} not found"}, ensure_ascii=False)
+    return json.dumps(dict(r), indent=2, ensure_ascii=False)
+
+
+def tool_search_fuling_articles(query):
+    results = db.search_fuling_articles(query)
+    if not results:
+        return json.dumps({"message": "No matching Fuling articles found."}, ensure_ascii=False)
+    out = []
+    for r in results[:5]:
+        out.append({
+            "fuling_article_num": r["fuling_article_num"],
+            "fuling_zh": r["fuling_zh"],
+            "song_article_num": r["song_article_num"],
+            "song_zh": r["song_zh"],
+            "channel": r["channel"],
+        })
+    return json.dumps(out, indent=2, ensure_ascii=False)
+
+
 TOOL_DISPATCH = {
     "search_formulas": tool_search_formulas,
     "search_terminology": tool_search_terminology,
     "search_articles": tool_search_articles,
     "get_article": tool_get_article,
+    "get_fuling_article": tool_get_fuling_article,
+    "search_fuling_articles": tool_search_fuling_articles,
 }
 
 
@@ -162,8 +228,8 @@ class DeepSeekClient:
         self.api_key = api_key or os.environ.get('DEEPSEEK_API_KEY')
         self.base_url = "https://api.deepseek.com"
         self.model = "deepseek-chat"
-        self.max_retries = 3
-        self.timeout = 120
+        self.max_retries = 2
+        self.timeout = 45
         chat_logger.info(f"DeepSeekClient initialized | Model: {self.model} | Timeout: {self.timeout}s")
 
     def chat_with_tools(self, messages, system_prompt=None, tools=None):
@@ -176,7 +242,8 @@ class DeepSeekClient:
             all_messages.append({"role": "system", "content": system_prompt})
         all_messages.extend(messages)
 
-        max_tool_rounds = 6
+        max_tool_rounds = 3
+        seen_tool_calls = set()
         for _round in range(max_tool_rounds):
             payload = {
                 "model": self.model,
@@ -207,6 +274,16 @@ class DeepSeekClient:
                     fn_args = {}
 
                 chat_logger.info(f"Tool call: {fn_name}({json.dumps(fn_args, ensure_ascii=False)[:100]})")
+                tool_signature = (fn_name, json.dumps(fn_args, sort_keys=True, ensure_ascii=False))
+                if tool_signature in seen_tool_calls:
+                    result_text = json.dumps({"message": "This search was already run. Use the previous result to answer."}, ensure_ascii=False)
+                    all_messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc['id'],
+                        "content": result_text
+                    })
+                    continue
+                seen_tool_calls.add(tool_signature)
 
                 handler = TOOL_DISPATCH.get(fn_name)
                 if handler:
@@ -223,8 +300,8 @@ class DeepSeekClient:
                     "content": result_text
                 })
 
-        chat_logger.warning("Max tool rounds reached, returning last assistant content")
-        return "I apologize, but I couldn't complete the search in time. Please try a more specific question."
+        chat_logger.warning("Max tool rounds reached")
+        return "I found search results, but the model kept requesting more searches. Please try a more specific question."
 
     def _send_request(self, payload):
         last_error = None
@@ -277,6 +354,7 @@ def build_context(query):
     sources = []
     
     query_lower = query.lower()
+    wants_fuling = True
     query_words = set(re.findall(r'[a-z0-9]+', query_lower))
     
     for key, formula in FORMULAS.items():
@@ -345,6 +423,22 @@ def build_context(query):
                         "key": str(num),
                         "content": f"{r['original_zh']}\n{r['translation_en']}"
                     })
+        # Search Yuanben/Fuling in parallel with Songben; do not cross-reference.
+        fuling_results = db.search_fuling_articles(query) if wants_fuling else []
+        if fuling_results:
+            for r in fuling_results[:3]:
+                fa_num = r["fuling_article_num"]
+                # Avoid duplicating if already found via Song search
+                if any(s.get("key") == f"fuling_{fa_num}" for s in sources):
+                    continue
+                text = f"【涪陵古本 {fa_num}】{r['fuling_zh'][:200]}"
+                context_parts.append(text)
+                sources.append({
+                    "title": f"Yuanben/Fuling Article {fa_num}",
+                    "type": "fuling_article",
+                    "key": f"fuling_{fa_num}",
+                    "content": text
+                })
     except Exception as e:
         chat_logger.warning(f"Article search failed: {e}")
 
@@ -431,14 +525,23 @@ def extract_structured_formula(text):
 
 TOOL_SYSTEM_PROMPT = SYSTEM_PROMPT + """
 
+TEXTUAL EDITIONS:
+The Shang Han Lun exists in two primary editions in this system:
+1. **宋本 (Song Edition)** — the standard 宋本《伤寒论》, also referred to as "Song version"
+2. **涪陵古本 (Fuling Ancient Edition)** — 《重编施注涪陵古本伤寒杂病论》, the primary lecture textbook
+
+Search the edition the user asks about. Use Song edition tools for ordinary article references, and Fuling tools only when the user mentions 涪陵古本/Fuling or asks for that edition.
+
 TOOLS AVAILABLE:
 You have access to the following tools to look up information on demand:
 - search_formulas(query) — Search the classical formula database
 - search_terminology(query) — Look up TCM term definitions
-- search_articles(query) — Search the original Shang Han Lun articles/条文 by keyword, article number, or channel
-- get_article(article_num) — Get a specific article by its number (e.g., 73)
+- search_articles(query) — Search the original Shang Han Lun articles/条文 (宋本) by keyword, article number, or channel
+- get_article(article_num) — Get a specific Song edition article by its number (e.g., 73)
+- get_fuling_article(article_num) — Get a specific Fuling Ancient Edition article (涪陵古本) by its number (e.g., 10)
+- search_fuling_articles(query) — Search the Fuling Ancient Edition (涪陵古本) articles by keyword
 
-Use these tools WHENEVER you need specific information. Do not guess — search first, then answer based on what you find. You can call multiple tools if needed. When the user quotes or asks about specific 原文 (original text), use search_articles or get_article to find it. Context prefixed with [Reference:] is internal lecture material — do not quote or cite it directly, but use it to inform your answers."""
+Use at most one or two searches before answering. Do not repeat the same search. Context prefixed with [Reference:] is internal lecture material — do not quote or cite it directly, but use it to inform your answers."""
 
 
 class ChatEngine:
@@ -465,7 +568,7 @@ Relevant context from Shang Han Lun:
 {context}
 
 Instructions:
-- Use the available tools (search_formulas, search_lessons, get_lesson, search_terminology) to look up any specific information you need. Search first, then answer.
+- Use the available tools only if the provided context is not enough. Do not repeat searches.
 - Keep answers SHORT (2-4 sentences).
 - Use **bold** for formula names and key terms.
 - After each formula or key claim, add a source reference in brackets like [1], [2] etc.

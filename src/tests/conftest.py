@@ -56,6 +56,8 @@ def playwright_server():
 
 
 @pytest.fixture(scope="session")
-def base_url(playwright_server):
+def base_url(request):
     """Provide base URL to tests."""
-    return playwright_server
+    if "page" not in request.fixturenames:
+        return BASE_URL
+    return request.getfixturevalue("playwright_server")

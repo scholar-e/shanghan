@@ -6,6 +6,7 @@ import json
 import os
 import functools
 import logging
+import re
 from datetime import datetime
 
 from logger import get_logger
@@ -17,6 +18,86 @@ _connection_lock = threading.Lock()
 _write_lock = threading.Lock()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'data', 'shanghan.db')
+
+TEXT_QUERY_STOPWORDS = {
+    "第", "条", "条文", "文章", "原文", "经文", "宋本", "涪陵", "古本", "涪陵古本",
+    "伤寒论", "伤寒", "查询", "搜索", "查找", "请问", "关于", "什么", "怎么", "如何",
+    "解释", "说明", "比较", "版本", "the", "and", "for", "with", "what", "about",
+    "article", "text", "search", "find", "show", "tell", "me", "does", "say", "please",
+}
+
+
+def _dedupe_preserve_order(values):
+    seen = set()
+    result = []
+    for value in values:
+        if value and value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result
+
+
+def parse_text_query(query, max_terms=12):
+    """Extract searchable terms from mixed Chinese/English text queries."""
+    if not query:
+        return []
+
+    raw = str(query).strip()
+    normalized = raw.lower()
+    normalized = re.sub(r"[，。！？；：、（）《》【】“”‘’\[\](),.;:!?/_\-]+", " ", normalized)
+
+    terms = []
+    terms.extend(re.findall(r"(?:第\s*)?(\d{1,3})\s*(?:条文|条|章|article|art\b)", normalized, re.IGNORECASE))
+    terms.extend(re.findall(r"\b\d{1,3}\b", normalized))
+
+    for token in re.findall(r"[a-z][a-z0-9']*|[0-9]+", normalized):
+        token = token.strip("'")
+        if len(token) >= 2 and token not in TEXT_QUERY_STOPWORDS:
+            terms.append(token)
+
+    for chunk in re.findall(r"[\u4e00-\u9fff]+", raw):
+        cleaned = chunk
+        for stopword in sorted(TEXT_QUERY_STOPWORDS, key=len, reverse=True):
+            if re.search(r"[\u4e00-\u9fff]", stopword):
+                cleaned = cleaned.replace(stopword, " ")
+        for part in cleaned.split():
+            if len(part) < 2:
+                continue
+            if len(part) <= 12:
+                terms.append(part)
+            else:
+                terms.append(part[:12])
+            for size in (4, 3, 2):
+                if len(part) > size:
+                    for i in range(0, min(len(part) - size + 1, 8)):
+                        terms.append(part[i:i + size])
+
+    return _dedupe_preserve_order(terms)[:max_terms]
+
+
+def _like_conditions(fields, terms):
+    conditions = []
+    params = []
+    for term in terms:
+        p = f"%{term}%"
+        conditions.append("(" + " OR ".join(f"{field} LIKE ?" for field in fields) + ")")
+        params.extend([p] * len(fields))
+    return conditions, params
+
+
+def _make_preview(content, terms, length=300):
+    if not content:
+        return ""
+    match_pos = -1
+    for term in terms:
+        match_pos = content.lower().find(term.lower())
+        if match_pos >= 0:
+            break
+    if match_pos < 0:
+        return content[:length]
+    start = max(0, match_pos - length // 3)
+    end = min(len(content), start + length)
+    return content[start:end]
 
 
 def get_connection():
@@ -96,6 +177,14 @@ def init_db():
             pattern TEXT DEFAULT '',
             original_zh TEXT NOT NULL,
             translation_en TEXT DEFAULT ''
+        );
+
+        CREATE TABLE IF NOT EXISTS fuling_articles (
+            fuling_article_num INTEGER PRIMARY KEY,
+            fuling_zh TEXT NOT NULL,
+            song_article_num INTEGER DEFAULT NULL,
+            song_zh TEXT DEFAULT NULL,
+            channel TEXT DEFAULT ''
         );
     """)
     conn.commit()
@@ -299,23 +388,24 @@ def get_lesson(lesson_id):
 @with_db
 def search_lessons(query):
     conn = get_connection()
-    terms = [t.strip() for t in query.replace('-', ' ').replace('_', ' ').split() if len(t.strip()) >= 2]
+    terms = parse_text_query(query)
     if not terms:
         return []
 
-    conditions = []
-    params = []
-    for term in terms:
-        pattern = f"%{term}%"
-        conditions.append("(content LIKE ? OR lesson_id LIKE ?)")
-        params.extend([pattern, pattern])
+    fields = ["content", "lesson_id", "title", "category", "subcategory", "source_path"]
+    conditions, params = _like_conditions(fields, terms)
 
     sql = f"""SELECT id, lesson_id, title, category, subcategory,
-                     substr(content, 1, 300) AS preview, word_count
+                     content, word_count
               FROM lessons WHERE {' OR '.join(conditions)}
               ORDER BY lesson_id LIMIT 10"""
     rows = conn.execute(sql, params).fetchall()
-    return [dict(r) for r in rows]
+    results = []
+    for row in rows:
+        item = dict(row)
+        item["preview"] = _make_preview(item.pop("content", ""), terms)
+        results.append(item)
+    return results
 
 
 @with_db
@@ -362,19 +452,29 @@ def get_article(article_num):
 @with_db
 def search_articles(query):
     conn = get_connection()
-    terms = [t.strip() for t in query.replace('-', ' ').split() if len(t.strip()) >= 2]
+    terms = parse_text_query(query)
     if not terms:
         return []
 
-    conditions = []
-    params = []
-    for term in terms:
-        p = f"%{term}%"
-        conditions.append("(original_zh LIKE ? OR translation_en LIKE ? OR channel LIKE ? OR pattern LIKE ? OR CAST(article_num AS TEXT) LIKE ?)")
-        params.extend([p, p, p, p, p])
+    rows = []
+    article_nums = [int(term) for term in terms if term.isdigit()]
+    if article_nums:
+        placeholders = ",".join("?" for _ in article_nums)
+        rows.extend(conn.execute(
+            f"SELECT * FROM shl_articles WHERE article_num IN ({placeholders}) ORDER BY article_num",
+            article_nums
+        ).fetchall())
+
+    seen_nums = {row["article_num"] for row in rows}
+    keyword_terms = [term for term in terms if not term.isdigit()]
+    if not keyword_terms:
+        return [dict(r) for r in rows[:10]]
+
+    fields = ["original_zh", "translation_en", "channel", "pattern", "CAST(article_num AS TEXT)"]
+    conditions, params = _like_conditions(fields, keyword_terms)
 
     sql = f"SELECT * FROM shl_articles WHERE {' OR '.join(conditions)} ORDER BY article_num LIMIT 10"
-    rows = conn.execute(sql, params).fetchall()
+    rows.extend(row for row in conn.execute(sql, params).fetchall() if row["article_num"] not in seen_nums)
     return [dict(r) for r in rows]
 
 
@@ -390,3 +490,76 @@ def clear_articles():
 def article_count():
     conn = get_connection()
     return conn.execute("SELECT COUNT(*) FROM shl_articles").fetchone()[0]
+
+
+# --- Fuling Articles (涪陵古本 原文) ---
+
+@with_db
+def get_fuling_by_song_article(song_article_num):
+    """Get Fuling article(s) corresponding to a specific Song article number."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM fuling_articles WHERE song_article_num = ? ORDER BY fuling_article_num LIMIT 5",
+        (song_article_num,)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+@write_lock
+@with_db
+def save_fuling_article(fuling_article_num, fuling_zh, song_article_num, song_zh, channel):
+    conn = get_connection()
+    conn.execute(
+        "INSERT OR REPLACE INTO fuling_articles (fuling_article_num, fuling_zh, song_article_num, song_zh, channel) VALUES (?, ?, ?, ?, ?)",
+        (fuling_article_num, fuling_zh, song_article_num, song_zh, channel)
+    )
+    conn.commit()
+
+
+@with_db
+def get_fuling_article(fuling_article_num):
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM fuling_articles WHERE fuling_article_num = ?", (fuling_article_num,)).fetchone()
+    return dict(row) if row else None
+
+
+@with_db
+def search_fuling_articles(query):
+    conn = get_connection()
+    terms = parse_text_query(query)
+    if not terms:
+        return []
+
+    rows = []
+    article_nums = [int(term) for term in terms if term.isdigit()]
+    if article_nums:
+        placeholders = ",".join("?" for _ in article_nums)
+        rows.extend(conn.execute(
+            f"SELECT * FROM fuling_articles WHERE fuling_article_num IN ({placeholders}) ORDER BY fuling_article_num",
+            article_nums
+        ).fetchall())
+
+    seen_nums = {row["fuling_article_num"] for row in rows}
+    keyword_terms = [term for term in terms if not term.isdigit()]
+    if not keyword_terms:
+        return [dict(r) for r in rows[:10]]
+
+    fields = ["fuling_zh", "song_zh", "channel", "CAST(fuling_article_num AS TEXT)", "CAST(song_article_num AS TEXT)"]
+    conditions, params = _like_conditions(fields, keyword_terms)
+
+    sql = f"SELECT * FROM fuling_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_article_num LIMIT 10"
+    rows.extend(row for row in conn.execute(sql, params).fetchall() if row["fuling_article_num"] not in seen_nums)
+    return [dict(r) for r in rows]
+
+
+@write_lock
+@with_db
+def clear_fuling_articles():
+    conn = get_connection()
+    conn.execute("DELETE FROM fuling_articles")
+    conn.commit()
+
+
+@with_db
+def fuling_article_count():
+    conn = get_connection()
+    return conn.execute("SELECT COUNT(*) FROM fuling_articles").fetchone()[0]
