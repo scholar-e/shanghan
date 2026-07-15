@@ -13,6 +13,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response
 from logger import setup_logging, get_logger, log_request, log_error, log_user_action
 from knowledge_base import FORMULAS, TERMINOLOGY
+from formula_intake import needs_formula_followup, formula_followup_response
 import database as db
 
 log = setup_logging("shanghan", level=logging.DEBUG)
@@ -622,6 +623,10 @@ def process_query(query, conversation_history=None):
         conversation_history = []
     
     logger.debug(f"process_query called with: {query[:100]}... | History: {len(conversation_history)} messages")
+
+    if needs_formula_followup(query, conversation_history):
+        logger.info("Formula recommendation request needs intake follow-up before processing")
+        return formula_followup_response(query), [], "", []
     
     api_key = os.environ.get('DEEPSEEK_API_KEY')
     

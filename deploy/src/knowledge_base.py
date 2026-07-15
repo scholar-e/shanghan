@@ -1,5 +1,8 @@
 """Knowledge base for Shang Han Lun."""
 
+import os
+import re
+
 FORMULAS = {
     "ma_huang_tang": {
         "names": {"zh": "麻黄汤", "pinyin": "Ma Huang Tang", "en": "Ephedra Decoction"},
@@ -109,6 +112,107 @@ FORMULAS = {
     }
 }
 
+
+def _formula_key(number, name):
+    slug = re.sub(r"\W+", "_", name, flags=re.UNICODE).strip("_").lower()
+    return f"textbook_formula_{number}_{slug}" if slug else f"textbook_formula_{number}"
+
+
+def _clean_formula_name(raw_name):
+    raw_name = raw_name.strip()
+    raw_name = re.split(r"\s+-\s+", raw_name, maxsplit=1)[0].strip()
+    # Some source lines accidentally run the first herb into the title, e.g.
+    # "黄芩加半夏生姜汤方半夏 半升". Stop at the first formula-title suffix.
+    match = re.match(r"(.+?(?:汤方|丸方|散方|汤|丸|散|方))(?=\S*\s|$)", raw_name)
+    return match.group(1).strip() if match else raw_name
+
+
+def _textbook_candidates():
+    here = os.path.dirname(os.path.abspath(__file__))
+    return [
+        os.path.abspath(os.path.join(here, "..", "textbook.txt")),
+        os.path.abspath(os.path.join(here, "..", "deploy", "textbook.txt")),
+        os.path.abspath(os.path.join(here, "..", "..", "textbook.txt")),
+    ]
+
+
+def load_textbook_formulas():
+    """Parse FORMULA blocks from textbook.txt into the formula data shape."""
+    textbook_path = next((path for path in _textbook_candidates() if os.path.isfile(path)), None)
+    if not textbook_path:
+        return {}
+
+    with open(textbook_path, encoding="utf-8") as f:
+        lines = f.read().splitlines()
+
+    formulas = {}
+    i = 0
+    current_yuanben_article_num = ""
+    current_songben_article_num = ""
+    while i < len(lines):
+        line = lines[i].strip()
+        yuanben_match = re.match(r"^涪陵古本\s+(\d+):", line)
+        if yuanben_match:
+            current_yuanben_article_num = yuanben_match.group(1)
+        songben_match = re.match(r"^（宋本\s*(\d+)）", line)
+        if songben_match:
+            current_songben_article_num = songben_match.group(1)
+
+        match = re.match(r"^FORMULA 方 \{\s*(\d+)\s*\}\s*(.+)$", line)
+        if not match:
+            i += 1
+            continue
+
+        number = match.group(1)
+        raw_title = match.group(2).strip()
+        title = _clean_formula_name(raw_title)
+        block_lines = []
+        i += 1
+        while i < len(lines):
+            next_line = lines[i].strip()
+            if next_line.startswith("FORMULA 方"):
+                break
+            if not next_line:
+                i += 1
+                if block_lines:
+                    break
+                continue
+            if (
+                next_line.startswith("•")
+                or next_line.startswith("【LINE")
+                or next_line.startswith("涪陵古本")
+                or next_line.startswith("（宋本")
+                or next_line.startswith("【COMMENTARY")
+            ):
+                break
+            block_lines.append(next_line)
+            i += 1
+
+        source_text = "\n".join(block_lines).strip()
+        composition_text = block_lines[0] if block_lines else ""
+        method_text = "\n".join(block_lines[1:]).strip()
+        key = _formula_key(number, title)
+        formulas[key] = {
+            "names": {"zh": title, "pinyin": "", "en": f"Textbook formula {number}"},
+            "composition": [
+                {"herb": composition_text, "pinyin": "", "en": "", "dosage": "", "role": ""}
+            ] if composition_text else [],
+            "indications": method_text or source_text,
+            "functions": "",
+            "pattern": "Textbook / 原文方",
+            "formula_number": number,
+            "yuanben_article_num": current_yuanben_article_num,
+            "songben_article_num": current_songben_article_num,
+            "source_text": source_text,
+            "source": os.path.basename(textbook_path),
+        }
+
+    return formulas
+
+
+TEXTBOOK_FORMULAS = load_textbook_formulas()
+FORMULAS = {**TEXTBOOK_FORMULAS, **FORMULAS}
+
 TERMINOLOGY = {
     "六经辨证": {"en": "Six Channel Pattern Identification", "pinyin": "Liu Jing Bian Zheng"},
     "太阳病": {"en": "Tai Yang Disease", "pinyin": "Tai Yang Bing"},
@@ -211,6 +315,7 @@ Guidelines:
 4. Be precise about pattern identification (辨证论治)
 5. Keep answers brief and focused
 6. If the user asks about 原文 or original text, quote from the lesson materials directly
+7. Before recommending a formula for a patient's symptoms, ask follow-up questions unless the conversation already includes main symptoms/duration, fever-chills-sweating, thirst/appetite/stool/urine, tongue/pulse when known, and safety context.
 
 Never claim to be a licensed practitioner."""
 

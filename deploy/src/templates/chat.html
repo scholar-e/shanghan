@@ -1056,11 +1056,37 @@
             font-style: italic;
         }
         
-        /* Formulas Grid (placeholder) */
+        /* Formula index */
         .formula-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: var(--space-lg);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            gap: 0.625rem;
+        }
+        .formula-pill {
+            min-height: 54px;
+            border: 1px solid var(--gray-200);
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 0.55rem 0.75rem;
+            cursor: pointer;
+            text-align: left;
+            min-width: 180px;
+            max-width: 240px;
+            flex: 1 1 190px;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+        }
+        .formula-pill:hover,
+        .formula-pill:focus {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            outline: none;
+        }
+        .formula-pill-name {
+            font-weight: 700;
+            color: var(--gray-900);
+            line-height: 1.2;
         }
         
         .loading {
@@ -1616,6 +1642,10 @@
             const source = currentSources[num - 1];
             if (!source) return;
 
+            // Lecture text is protected database content. Its citation remains
+            // visible in the references list, but it has no popup.
+            if (typeof source !== 'string' && source.hide_in_popup) return;
+
             const title = typeof source === 'string' ? source : source.title;
             const content = typeof source === 'string' ? null : source.content;
 
@@ -1666,32 +1696,47 @@
             for (const key of keys) {
                 const f = FORMULAS_DATA[key];
                 if (!f) continue;
-                const compHtml = f.composition.map(h =>
-                    `<tr><td>${h.herb}</td><td>${h.pinyin}</td><td>${h.en}</td><td>${h.dosage}</td><td>${h.role}</td></tr>`
+                const refs = [
+                    f.yuanben_article_num ? `原本/涪陵古本 ${escapeHtml(f.yuanben_article_num)}` : '',
+                    f.songben_article_num ? `宋本 ${escapeHtml(f.songben_article_num)}` : ''
+                ].filter(Boolean).join(' · ');
+                const sourceHtml = f.source_text
+                    ? `<div class="fp-text" style="white-space: pre-wrap;">${escapeHtml(f.source_text)}</div>`
+                    : '';
+                const compHtml = (f.composition || []).map(h =>
+                    `<tr><td>${escapeHtml(h.herb || '')}</td><td>${escapeHtml(h.pinyin || '')}</td><td>${escapeHtml(h.en || '')}</td><td>${escapeHtml(h.dosage || '')}</td><td>${escapeHtml(h.role || '')}</td></tr>`
                 ).join('');
+                const compositionHtml = sourceHtml || `
+                    <table class="fp-table">
+                        <thead><tr><th>中药</th><th>拼音</th><th>英文</th><th>剂量</th><th>角色</th></tr></thead>
+                        <tbody>${compHtml}</tbody>
+                    </table>
+                `;
 
                 html += `
                     <div class="fp-formula">
-                        <div class="fp-title">${f.names.zh} <span class="fp-pinyin">${f.names.pinyin}</span></div>
-                        <div class="fp-en">${f.names.en}</div>
+                        <div class="fp-title">${escapeHtml(f.names.zh || '')} <span class="fp-pinyin">${escapeHtml(f.names.pinyin || '')}</span></div>
+                        <div class="fp-en">${escapeHtml(f.names.en || '')}</div>
+                        ${refs ? `
+                        <div class="fp-section">
+                            <div class="fp-section-title">条文对应</div>
+                            <div class="fp-text">${refs}</div>
+                        </div>` : ''}
                         <div class="fp-section">
                             <div class="fp-section-title">组成</div>
-                            <table class="fp-table">
-                                <thead><tr><th>中药</th><th>拼音</th><th>英文</th><th>剂量</th><th>角色</th></tr></thead>
-                                <tbody>${compHtml}</tbody>
-                            </table>
+                            ${compositionHtml}
                         </div>
                         <div class="fp-section">
                             <div class="fp-section-title">主治</div>
-                            <div class="fp-text">${escapeHtml(f.indications)}</div>
+                            <div class="fp-text">${escapeHtml(f.indications || '')}</div>
                         </div>
                         <div class="fp-section">
                             <div class="fp-section-title">功能</div>
-                            <div class="fp-text">${escapeHtml(f.functions)}</div>
+                            <div class="fp-text">${escapeHtml(f.functions || '')}</div>
                         </div>
                         <div class="fp-section">
                             <div class="fp-section-title">证型</div>
-                            <div class="fp-text">${escapeHtml(f.pattern)}</div>
+                            <div class="fp-text">${escapeHtml(f.pattern || '')}</div>
                         </div>
                     </div>
                 `;
@@ -1931,12 +1976,35 @@
         window.doSearch = doSearch;
         document.getElementById('search-btn')?.addEventListener('click', doSearch);
         
-        // Formulas (placeholder for v1 UI similarity)
-        async function loadFormulas() {
+        // Formula index
+        function loadFormulas() {
             const grid = document.getElementById('formula-grid');
             if (!grid) return;
-            
-            grid.innerHTML = `<div class="loading">方剂不可用</div>`;
+
+            const entries = Object.entries(FORMULAS_DATA || {}).sort((a, b) => {
+                const aName = a[1]?.names?.pinyin || a[1]?.names?.zh || a[0];
+                const bName = b[1]?.names?.pinyin || b[1]?.names?.zh || b[0];
+                return aName.localeCompare(bName);
+            });
+
+            if (!entries.length) {
+                grid.innerHTML = `<div class="loading">方剂不可用</div>`;
+                return;
+            }
+
+            grid.innerHTML = entries.map(([key, formula]) => {
+                const names = formula.names || {};
+                const title = names.zh || names.pinyin || names.en || key;
+                return `
+                    <button class="formula-pill" type="button" data-formula-key="${escapeHtml(key)}">
+                        <div class="formula-pill-name">${escapeHtml(title)}</div>
+                    </button>
+                `;
+            }).join('');
+
+            grid.querySelectorAll('.formula-pill').forEach((button) => {
+                button.addEventListener('click', () => openFormulaPopup([button.dataset.formulaKey]));
+            });
         }
         
         // Logout

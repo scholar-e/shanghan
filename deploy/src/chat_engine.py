@@ -24,6 +24,7 @@ from knowledge_base import (
     FORMULAS
 )
 import database as db
+from formula_intake import needs_formula_followup, formula_followup_response
 
 chat_logger = setup_logging("chat", level=logging.DEBUG)
 chat_logger.info("Chat engine initialized")
@@ -442,16 +443,38 @@ def build_context(query):
     except Exception as e:
         chat_logger.warning(f"Article search failed: {e}")
 
-    # Internal reference: lesson content informs the AI but is not cited
+    # Lecture material is available to the AI and is represented in the numbered
+    # source list, but its protected text must never be exposed in the UI popup.
     try:
-        internal = db.search_lessons(query)
-        if internal:
-            for r in internal[:3]:
-                excerpt = r.get("preview", "").strip()
-                if excerpt:
-                    context_parts.append(f"[Reference: {r['lesson_id']}] {excerpt}")
-    except Exception:
-        pass
+        lesson_matches = []
+        lesson_number = re.search(r'(?:lecture|lesson|课(?:程)?|讲)\s*(\d{1,4})', query, re.IGNORECASE)
+        if lesson_number:
+            lesson_id = f"lesson{int(lesson_number.group(1)):04d}"
+            exact_lesson = db.get_lesson(lesson_id)
+            if exact_lesson:
+                lesson_matches.append(exact_lesson)
+
+        seen_lesson_ids = {r["lesson_id"] for r in lesson_matches}
+        for result in db.search_lessons(query):
+            if result["lesson_id"] not in seen_lesson_ids:
+                lesson_matches.append(result)
+                seen_lesson_ids.add(result["lesson_id"])
+
+        for r in lesson_matches[:3]:
+            lesson_id = r["lesson_id"]
+            lecture_number = int(re.search(r'\d+', lesson_id).group())
+            lecture_text = (r.get("content") or r.get("preview") or "").strip()
+            if not lecture_text:
+                continue
+            context_parts.append(f"[Lecture {lecture_number}] {lecture_text}")
+            sources.append({
+                "title": f"Lecture {lecture_number}",
+                "type": "lecture",
+                "key": lesson_id,
+                "hide_in_popup": True
+            })
+    except Exception as e:
+        chat_logger.warning(f"Lecture search failed: {e}")
 
     if not context_parts:
         context_parts.append("General reference: The Shang Han Lun contains 112 classical formulas organized by the Six Channel (六经辨证) pattern identification system.")
@@ -493,7 +516,10 @@ def extract_formulas_from_text(text):
     seen_keys = set()
     for key, formula in FORMULAS.items():
         names = formula["names"]
-        if (names.get("zh", "") and names["zh"] in text) or (names.get("pinyin", "").lower() in text_lower) or (names.get("en", "").lower() in text_lower):
+        zh = names.get("zh", "")
+        pinyin = names.get("pinyin", "").lower()
+        en = names.get("en", "").lower()
+        if (zh and zh in text) or (pinyin and pinyin in text_lower) or (en and en in text_lower):
             if key not in seen_keys:
                 found.append(formula)
                 seen_keys.add(key)
@@ -541,7 +567,7 @@ You have access to the following tools to look up information on demand:
 - get_fuling_article(article_num) — Get a specific Fuling Ancient Edition article (涪陵古本) by its number (e.g., 10)
 - search_fuling_articles(query) — Search the Fuling Ancient Edition (涪陵古本) articles by keyword
 
-Use at most one or two searches before answering. Do not repeat the same search. Context prefixed with [Reference:] is internal lecture material — do not quote or cite it directly, but use it to inform your answers."""
+Use at most one or two searches before answering. Do not repeat the same search. Context prefixed with [Lecture N] is lecture material: use it directly and cite its matching numbered source. Never reproduce long lecture passages verbatim."""
 
 
 class ChatEngine:
@@ -558,6 +584,10 @@ class ChatEngine:
 
         chat_logger.info(f"Processing query: {query[:100]}... | History: {len(conversation_history)} messages")
 
+        if needs_formula_followup(query, conversation_history):
+            chat_logger.info("Formula recommendation request needs intake follow-up before suggesting formulas")
+            return formula_followup_response(query), [], "", []
+
         # Lightweight initial context (tools handle deeper search)
         context, sources = build_context(query)
         chat_logger.debug(f"Initial context: {len(context)} chars, {len(sources)} sources")
@@ -572,8 +602,10 @@ Instructions:
 - Keep answers SHORT (2-4 sentences).
 - Use **bold** for formula names and key terms.
 - After each formula or key claim, add a source reference in brackets like [1], [2] etc.
+- When lecture context supports the answer, cite the source whose title is the specific Lecture number.
 - Use ## for sections.
-- If you recommend or discuss specific formulas, include a [FORMULA] JSON block at the end.
+- Before recommending a formula for a patient's symptoms, confirm the conversation includes enough pattern details: main symptoms/duration, fever-chills-sweating, thirst/appetite/stool/urine, tongue/pulse when known, and safety context such as pregnancy, medications, or major illness. If these are missing, ask follow-up questions instead of recommending a formula.
+- If you recommend a specific formula after sufficient intake, include a [FORMULA] JSON block at the end.
 - Focus on the most relevant information only."""
 
         try:
@@ -584,7 +616,9 @@ Instructions:
                         'role': msg['role'],
                         'content': msg['content'][:500]
                     })
-            messages.append({"role": "user", "content": user_message[:4000]})
+            # Lecture documents are longer than the former 4k-character cap;
+            # retain enough context for the model to read the retrieved lecture.
+            messages.append({"role": "user", "content": user_message[:16000]})
 
             chat_logger.debug(f"Sending to API with {len(messages)} messages + tools")
             answer = self.client.chat_with_tools(messages, self.system_prompt, tools=SEARCH_TOOLS)

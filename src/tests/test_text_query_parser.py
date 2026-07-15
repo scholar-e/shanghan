@@ -64,6 +64,17 @@ def test_context_builder_includes_songben_and_yuanben_sources():
     assert any("Yuanben/Fuling Article 73" in title for title in titles)
 
 
+def test_context_builder_reads_and_cites_specific_lecture_without_popup_content():
+    context, sources = build_context("lecture 2")
+    lecture = next(source for source in sources if source["type"] == "lecture")
+
+    assert "[Lecture 2]" in context
+    assert lecture["title"] == "Lecture 2"
+    assert lecture["key"] == "lesson0002"
+    assert lecture["hide_in_popup"] is True
+    assert "content" not in lecture
+
+
 def test_api_search_numeric_query_searches_original_text_even_in_name_mode():
     import server
 
