@@ -1696,7 +1696,7 @@
                 const f = FORMULAS_DATA[key];
                 if (!f) continue;
                 const refs = [
-                    f.yuanben_article_num ? `Yuanben / Fuling ${escapeHtml(f.yuanben_article_num)}` : '',
+                    f.yuanben_article_num ? `Fuling ${escapeHtml(f.yuanben_article_num)}` : '',
                     f.songben_article_num ? `Songben ${escapeHtml(f.songben_article_num)}` : ''
                 ].filter(Boolean).join(' · ');
                 const sourceHtml = f.source_text
@@ -1761,6 +1761,15 @@
             const overlay = document.getElementById('articlePopup');
             const body = document.getElementById('articlePopupBody');
             if (!overlay || !body) return;
+
+            if (article.fuling_article_num) {
+                const songbenTag = article.songben_article_num
+                    ? `<span style="font-size:0.8rem;color:var(--gray-500);font-weight:400;margin-left:.5rem;">Songben ${escapeHtml(article.songben_article_num)}</span>` : '';
+                body.innerHTML = `<div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:.75rem;">Fuling Article ${escapeHtml(article.fuling_article_num)} ${songbenTag}</div><div style="font-size:.9rem;color:var(--gray-800);line-height:1.7;background:#fff8f0;border:1px solid #f0dcc0;border-radius:8px;padding:1rem;">${escapeHtml(article.fuling_zh)}</div>`;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                return;
+            }
 
             const songText = escapeHtml(article.original_zh);
             const songEn = article.translation_en ? escapeHtml(article.translation_en) : '';
@@ -1884,6 +1893,20 @@
                 let html = `<div class="search-count">Found ${data.total} result(s)</div>`;
                 html += `<div id="search-results-data" style="display:none;">${escapeHtml(JSON.stringify(data))}</div>`;
 
+                // Canonical textbook entries come first. Fuling is primary;
+                // Songben is only a secondary reference tag on the same card.
+                if (data.textbook_entries && data.textbook_entries.length) {
+                    html += `<div class="search-category-header">— Textbook: Fuling —</div>`;
+                    for (const entry of data.textbook_entries) {
+                        const idx = data.textbook_entries.indexOf(entry);
+                        html += `<div class="search-formula-card search-clickable" data-result-type="textbook_entry" data-result-index="${idx}">`;
+                        html += `<div class="sf-name">Fuling Article ${entry.fuling_article_num}</div>`;
+                        html += `<div class="sf-composition">${entry.fuling_zh}</div>`;
+                        if (entry.songben_article_num) html += `<div class="sf-indications">Songben ${entry.songben_article_num}</div>`;
+                        html += `</div>`;
+                    }
+                }
+
                 // Formulas
                 for (const [category, formulas] of Object.entries(data.categories)) {
                     html += `<div class="search-category-header">— ${category} —</div>`;
@@ -1896,36 +1919,6 @@
                                 <div class="sf-indications">Indications: ${f.indications}</div>
                                 <div class="sf-matches">Matched in: ${f.matches.join(', ')}</div>
                             </div>`;
-                    }
-                }
-
-                // Song original text
-                if (data.articles && data.articles.length) {
-                    html += `<div class="search-category-header">— Original Text: Song Edition (宋本) —</div>`;
-                    for (const a of data.articles) {
-                        html += `<div class="search-formula-card search-clickable" data-result-type="song_article" data-result-index="${data.articles.indexOf(a)}">`;
-                        html += `<div class="sf-name">Article ${a.article_num} [${a.channel}]</div>`;
-                        html += `<div class="sf-composition">Song: ${a.original_zh}</div>`;
-                        if (a.fuling) {
-                            html += `<div class="sf-indications">Fuling ${a.fuling.fuling_article_num}: ${a.fuling.fuling_zh}</div>`;
-                        }
-                        html += `</div>`;
-                    }
-                }
-
-                // Fuling original text
-                if (data.fuling_articles && data.fuling_articles.length) {
-                    html += `<div class="search-category-header">— Original Text: Yuanben / Fuling Ancient Edition (原本/涪陵古本) —</div>`;
-                    for (const f of data.fuling_articles) {
-                        html += `<div class="search-formula-card search-clickable" data-result-type="fuling_article" data-result-index="${data.fuling_articles.indexOf(f).toString()}">`;
-                        html += `<div class="sf-name">Fuling Article ${f.fuling_article_num}</div>`;
-                        html += `<div class="sf-composition">${f.fuling_zh}</div>`;
-                        if (f.song_article_num) {
-                            html += `<div class="sf-indications">→ Song article ${f.song_article_num}</div>`;
-                        } else {
-                            html += `<div class="sf-indications">(No Song equivalent)</div>`;
-                        }
-                        html += `</div>`;
                     }
                 }
 
@@ -1942,23 +1935,10 @@
                             if (type === 'formula') {
                                 const key = this.dataset.resultKey;
                                 openFormulaPopup([key]);
-                            } else if (type === 'song_article') {
+                            } else if (type === 'textbook_entry') {
                                 const idx = parseInt(this.dataset.resultIndex);
-                                const article = searchData.articles[idx];
-                                if (article) openArticlePopup(article);
-                            } else if (type === 'fuling_article') {
-                                const idx = parseInt(this.dataset.resultIndex);
-                                const fa = searchData.fuling_articles[idx];
-                                if (fa) openArticlePopup({
-                                    article_num: fa.fuling_article_num,
-                                    channel: fa.channel || '?',
-                                    original_zh: fa.fuling_zh,
-                                    translation_en: '',
-                                    fuling: fa.song_article_num ? {
-                                        fuling_article_num: fa.song_article_num,
-                                        fuling_zh: fa.song_zh
-                                    } : null
-                                });
+                                const entry = searchData.textbook_entries[idx];
+                                if (entry) openArticlePopup(entry);
                             }
                         } catch(e) {}
                     });

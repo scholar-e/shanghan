@@ -64,7 +64,7 @@ SEARCH_TOOLS = [
         "type": "function",
         "function": {
             "name": "search_articles",
-            "description": "Search both Song edition (宋本) and Yuanben/Fuling ancient edition (原本/涪陵古本) original text by article number, keyword, or channel. Use when the user quotes or asks about specific 原文 text from the Shang Han Lun.",
+            "description": "Search the Fuling textbook by article number, keyword, Songben secondary tag, or channel.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -152,29 +152,15 @@ def tool_search_terminology(query):
 
 
 def tool_search_articles(query):
-    song_results = db.search_articles(query)
-    yuanben_results = db.search_fuling_articles(query)
-    if not song_results and not yuanben_results:
+    fuling_results = db.search_fuling_articles(query)
+    if not fuling_results:
         return json.dumps({"message": "No matching original text found."}, ensure_ascii=False)
-
-    out = {
-        "songben": [],
-        "yuanben": [],
-    }
-    for r in song_results[:5]:
-        out["songben"].append({
-            "article_num": r["article_num"],
-            "channel": r["channel"],
-            "pattern": r["pattern"],
-            "original_zh": r["original_zh"],
-            "translation_en": r["translation_en"]
-        })
-    for r in yuanben_results[:5]:
-        out["yuanben"].append({
-            "article_num": r["fuling_article_num"],
-            "original_zh": r["fuling_zh"],
-            "song_article_num": r["song_article_num"],
-            "song_zh": r["song_zh"],
+    out = {"fuling": []}
+    for r in fuling_results[:5]:
+        out["fuling"].append({
+            "fuling_article_num": r["fuling_article_num"],
+            "fuling_zh": r["fuling_zh"],
+            "songben_article_num": r["song_article_num"],
             "channel": r["channel"],
         })
     return json.dumps(out, indent=2, ensure_ascii=False)
@@ -396,35 +382,9 @@ def build_context(query):
                 "content": context_text
             })
     
-    # Search SHL articles by number or keyword — these are citeable sources
+    # Search the canonical Fuling textbook. Songben numbers are secondary tags
+    # stored on the same record, not independent sources.
     try:
-        m = re.search(r'(?:article|条文|条|art[\.\s]*)\s*(\d{1,3})', query, re.IGNORECASE)
-        if m:
-            num = int(m.group(1))
-            article = db.get_article(num)
-            if article:
-                text = f"Article {num} [{article['channel']}]: {article['original_zh']}"
-                context_parts.append(text)
-                sources.append({
-                    "title": f"Shang Han Lun Article {num}",
-                    "type": "article",
-                    "key": str(num),
-                    "content": f"{article['original_zh']}\n{article['translation_en']}"
-                })
-        article_results = db.search_articles(query)
-        if article_results:
-            for r in article_results[:3]:
-                num = r["article_num"]
-                if not any(s.get("key") == str(num) and s.get("type") == "article" for s in sources):
-                    text = f"Article {num} [{r['channel']}]: {r['original_zh'][:200]}"
-                    context_parts.append(text)
-                    sources.append({
-                        "title": f"Shang Han Lun Article {num}",
-                        "type": "article",
-                        "key": str(num),
-                        "content": f"{r['original_zh']}\n{r['translation_en']}"
-                    })
-        # Search Yuanben/Fuling in parallel with Songben; do not cross-reference.
         fuling_results = db.search_fuling_articles(query) if wants_fuling else []
         if fuling_results:
             for r in fuling_results[:3]:
@@ -432,10 +392,11 @@ def build_context(query):
                 # Avoid duplicating if already found via Song search
                 if any(s.get("key") == f"fuling_{fa_num}" for s in sources):
                     continue
-                text = f"【涪陵古本 {fa_num}】{r['fuling_zh'][:200]}"
+                songben_tag = f" [Songben {r['song_article_num']}]" if r['song_article_num'] else ""
+                text = f"【Fuling {fa_num}{songben_tag}】{r['fuling_zh'][:200]}"
                 context_parts.append(text)
                 sources.append({
-                    "title": f"Yuanben/Fuling Article {fa_num}",
+                    "title": f"Fuling Article {fa_num}",
                     "type": "fuling_article",
                     "key": f"fuling_{fa_num}",
                     "content": text

@@ -47,21 +47,20 @@ def test_lesson_search_uses_match_centered_preview():
     assert any(term in results[0]["preview"] for term in ("太阳", "发汗", "大汗"))
 
 
-def test_ai_article_search_tool_returns_songben_and_yuanben():
+def test_ai_article_search_tool_returns_unified_fuling_entries():
     data = json.loads(tool_search_articles("第73条五苓散"))
 
-    assert data["songben"]
-    assert data["yuanben"]
-    assert data["songben"][0]["article_num"] == 73
-    assert data["yuanben"][0]["article_num"] == 73
+    assert data["fuling"]
+    assert data["fuling"][0]["fuling_article_num"] == 73
+    assert "songben_article_num" in data["fuling"][0]
 
 
-def test_context_builder_includes_songben_and_yuanben_sources():
+def test_context_builder_uses_only_fuling_textbook_source():
     _context, sources = build_context("第73条五苓散")
     titles = [source["title"] for source in sources]
 
-    assert any("Article 73" in title for title in titles)
-    assert any("Yuanben/Fuling Article 73" in title for title in titles)
+    assert "Fuling Article 73" in titles
+    assert not any("Yuanben" in title or "Shang Han Lun Article" in title for title in titles)
 
 
 def test_context_builder_reads_and_cites_specific_lecture_without_popup_content():
@@ -87,7 +86,27 @@ def test_api_search_numeric_query_searches_original_text_even_in_name_mode():
     data = response.get_json()
 
     assert response.status_code == 200
-    assert data["articles"]
-    assert data["fuling_articles"]
-    assert data["articles"][0]["article_num"] == 10
-    assert data["fuling_articles"][0]["fuling_article_num"] == 10
+    assert not data["articles"]
+    assert data["textbook_entries"]
+    assert data["textbook_entries"][0]["fuling_article_num"] == 10
+    assert "songben_article_num" in data["textbook_entries"][0]
+
+
+def test_database_export_is_admin_only_and_returns_valid_sqlite():
+    import server
+
+    client = server.app.test_client()
+    assert client.get("/admin/api/database/export").status_code == 401
+
+    with client.session_transaction() as sess:
+        sess["user"] = "regular@tcm.org"
+    assert client.get("/admin/api/database/export").status_code == 403
+
+    with client.session_transaction() as sess:
+        sess["user"] = "prof@tcm.org"
+    response = client.get("/admin/api/database/export")
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/vnd.sqlite3"
+    assert "attachment" in response.headers["Content-Disposition"]
+    assert response.data.startswith(b"SQLite format 3\x00")

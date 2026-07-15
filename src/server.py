@@ -8,9 +8,11 @@ import uuid
 import hashlib
 import time
 import functools
+import glob
 import logging
+import tempfile
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, after_this_request
 from logger import setup_logging, get_logger, log_request, log_error, log_user_action
 from knowledge_base import FORMULAS, TERMINOLOGY
 from formula_intake import needs_formula_followup, formula_followup_response
@@ -409,6 +411,39 @@ def admin_feedback():
     feedbacks = db.get_all_feedback()
     return jsonify({'feedbacks': feedbacks})
 
+
+@app.route('/admin/api/database/export')
+@log_route
+@admin_required
+def admin_export_database():
+    """Download a consistent snapshot of the complete SQLite database."""
+    fd, snapshot_path = tempfile.mkstemp(prefix='shanghan-export-', suffix='.db')
+    os.close(fd)
+    try:
+        db.export_database(snapshot_path)
+    except Exception:
+        if os.path.exists(snapshot_path):
+            os.unlink(snapshot_path)
+        raise
+
+    @after_this_request
+    def remove_snapshot(response):
+        try:
+            os.unlink(snapshot_path)
+        except OSError:
+            logger.warning(f"Could not remove database export snapshot: {snapshot_path}")
+        return response
+
+    filename = f"shanghan-{datetime.now().strftime('%Y%m%d-%H%M%S')}.db"
+    logger.info(f"Database exported by admin: {session.get('user')}")
+    return send_file(
+        snapshot_path,
+        mimetype='application/vnd.sqlite3',
+        as_attachment=True,
+        download_name=filename,
+        conditional=False,
+    )
+
 @app.route('/api/search', methods=['GET'])
 @log_route
 def api_search():
@@ -483,56 +518,32 @@ def api_search():
             })
 
     # ── Articles (原文) — only in text mode ──
-    article_results = []
-    fuling_results = []
+    textbook_results = []
     if mode == 'text':
-        try:
-            for r in db.search_articles(query):
-                fuling = None
-                try:
-                    fl = db.get_fuling_by_song_article(r['article_num'])
-                    if fl:
-                        f = fl[0]
-                        fuling = {
-                            'fuling_article_num': f['fuling_article_num'],
-                            'fuling_zh': f['fuling_zh'],
-                            'song_zh': f['song_zh']
-                        }
-                except Exception:
-                    pass
-                article_results.append({
-                    'article_num': r['article_num'],
-                    'channel': r['channel'],
-                    'original_zh': r['original_zh'],
-                    'translation_en': r['translation_en'],
-                    'fuling': fuling
-                })
-        except Exception:
-            pass
-
-        # ── Fuling Articles (涪陵古本 原文) ──
+        # Fuling is the canonical textbook entry. Songben is metadata on that
+        # entry, never a separate search result.
         try:
             for r in db.search_fuling_articles(query):
-                fuling_results.append({
+                textbook_results.append({
                     'fuling_article_num': r['fuling_article_num'],
                     'fuling_zh': r['fuling_zh'],
-                    'song_article_num': r['song_article_num'],
-                    'song_zh': r['song_zh'],
+                    'songben_article_num': r['song_article_num'],
+                    'songben_zh': r['song_zh'],
                     'channel': r['channel']
                 })
         except Exception:
             pass
 
-    total = len(formula_results) + len(term_results) + len(article_results) + len(fuling_results)
-    logger.info(f"Search: q='{query}' => {len(formula_results)} formulas, {len(term_results)} terms, {len(article_results)} song articles, {len(fuling_results)} yuanben articles")
+    total = len(textbook_results) + len(formula_results) + len(term_results)
+    logger.info(f"Search: q='{query}' => {len(textbook_results)} Fuling textbook entries, {len(formula_results)} formulas, {len(term_results)} terms")
     return jsonify({
         'query': query,
         'formulas': formula_categories,
         'categories': formula_categories,
         'terminology': term_results,
-        'articles': article_results,
-        'fuling_articles': fuling_results,
-        'yuanben_articles': fuling_results,
+        'textbook_entries': textbook_results,
+        'articles': [],
+        'fuling_articles': textbook_results,
         'total': total,
     })
 

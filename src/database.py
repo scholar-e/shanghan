@@ -122,6 +122,17 @@ def write_lock(func):
 
 
 @write_lock
+def export_database(destination_path):
+    """Write a transactionally consistent SQLite snapshot."""
+    source = get_connection()
+    snapshot = sqlite3.connect(destination_path)
+    try:
+        source.backup(snapshot)
+    finally:
+        snapshot.close()
+
+
+@write_lock
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = get_connection()
@@ -256,11 +267,19 @@ def get_messages(session_id):
 def get_all_conversations():
     conn = get_connection()
     rows = conn.execute(
-        "SELECT session_id, user_email, timestamp, messages FROM conversations ORDER BY timestamp DESC"
+        """SELECT session_id, user_email, timestamp, CAST(messages AS BLOB) AS messages
+           FROM conversations ORDER BY timestamp DESC"""
     ).fetchall()
     result = []
     for row in rows:
-        msgs = json.loads(row["messages"])
+        raw_messages = row["messages"]
+        if isinstance(raw_messages, bytes):
+            raw_messages = raw_messages.decode("utf-8", errors="replace")
+        try:
+            msgs = json.loads(raw_messages)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"Malformed conversation payload: {row['session_id']}")
+            msgs = []
         result.append({
             "session_id": row["session_id"],
             "user_email": row["user_email"],
@@ -274,12 +293,20 @@ def get_all_conversations():
 def get_conversation(session_id):
     conn = get_connection()
     row = conn.execute(
-        "SELECT * FROM conversations WHERE session_id = ?", (session_id,)
+        """SELECT session_id, user_email, timestamp, CAST(messages AS BLOB) AS messages
+           FROM conversations WHERE session_id = ?""", (session_id,)
     ).fetchone()
     if row is None:
         return None
     data = dict(row)
-    data["messages"] = json.loads(data["messages"])
+    raw_messages = data["messages"]
+    if isinstance(raw_messages, bytes):
+        raw_messages = raw_messages.decode("utf-8", errors="replace")
+    try:
+        data["messages"] = json.loads(raw_messages)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning(f"Malformed conversation payload: {session_id}")
+        data["messages"] = []
     return data
 
 

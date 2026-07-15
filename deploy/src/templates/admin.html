@@ -566,6 +566,9 @@
                 Admin Dashboard
             </h1>
             <p class="admin-subtitle">Monitor logs, conversations, and user feedback for Shanghan-TCM Evidence</p>
+            <a class="btn btn-primary" href="/admin/api/database/export" style="margin-top:var(--space-md);display:inline-flex;gap:.5rem;align-items:center;">
+                <i class="fas fa-database"></i> Export Database
+            </a>
         </header>
         
         <div class="admin-tabs">
@@ -851,6 +854,18 @@
         function hideError(container) {
             document.getElementById(container).style.display = 'none';
         }
+
+        async function fetchJson(url, options) {
+            const response = await fetch(url, options);
+            const contentType = response.headers.get('content-type') || '';
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}`);
+            }
+            if (!contentType.includes('application/json')) {
+                throw new Error('Server returned a non-JSON response');
+            }
+            return response.json();
+        }
         
         // Logs
         function loadLogs() {
@@ -861,8 +876,7 @@
             table.style.display = 'none';
             hideError('logs-error');
             
-            fetch('/admin/api/logs')
-                .then(res => res.json())
+            fetchJson('/admin/api/logs')
                 .then(data => {
                     loading.style.display = 'none';
                     body.innerHTML = '';
@@ -907,8 +921,7 @@
             table.style.display = 'none';
             hideError('conversations-error');
             
-            fetch('/admin/api/conversations')
-                .then(res => res.json())
+            fetchJson('/admin/api/conversations')
                 .then(data => {
                     loading.style.display = 'none';
                     body.innerHTML = '';
@@ -949,8 +962,7 @@
             table.style.display = 'none';
             hideError('feedback-error');
             
-            fetch('/admin/api/feedback')
-                .then(res => res.json())
+            fetchJson('/admin/api/feedback')
                 .then(data => {
                     loading.style.display = 'none';
                     body.innerHTML = '';

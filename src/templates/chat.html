@@ -1697,7 +1697,7 @@
                 const f = FORMULAS_DATA[key];
                 if (!f) continue;
                 const refs = [
-                    f.yuanben_article_num ? `原本/涪陵古本 ${escapeHtml(f.yuanben_article_num)}` : '',
+                    f.yuanben_article_num ? `涪陵 ${escapeHtml(f.yuanben_article_num)}` : '',
                     f.songben_article_num ? `宋本 ${escapeHtml(f.songben_article_num)}` : ''
                 ].filter(Boolean).join(' · ');
                 const sourceHtml = f.source_text
@@ -1762,6 +1762,15 @@
             const overlay = document.getElementById('articlePopup');
             const body = document.getElementById('articlePopupBody');
             if (!overlay || !body) return;
+
+            if (article.fuling_article_num) {
+                const songbenTag = article.songben_article_num
+                    ? `<span style="font-size:0.8rem;color:var(--gray-500);font-weight:400;margin-left:.5rem;">宋本第 ${escapeHtml(article.songben_article_num)} 条</span>` : '';
+                body.innerHTML = `<div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:.75rem;">涪陵第 ${escapeHtml(article.fuling_article_num)} 条 ${songbenTag}</div><div style="font-size:.9rem;color:var(--gray-800);line-height:1.7;background:#fff8f0;border:1px solid #f0dcc0;border-radius:8px;padding:1rem;">${escapeHtml(article.fuling_zh)}</div>`;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                return;
+            }
 
             const songText = escapeHtml(article.original_zh);
             const songEn = article.translation_en ? escapeHtml(article.translation_en) : '';
@@ -1886,6 +1895,19 @@
                 let html = `<div class="search-count">找到 ${data.total} 条结果</div>`;
                 html += `<div id="search-results-data" style="display:none;">${escapeHtml(JSON.stringify(data))}</div>`;
 
+                // 教材条目置顶：涪陵为主条目，宋本编号仅作次级标签。
+                if (data.textbook_entries && data.textbook_entries.length) {
+                    html += `<div class="search-category-header">— 教材：涪陵 —</div>`;
+                    for (const entry of data.textbook_entries) {
+                        const idx = data.textbook_entries.indexOf(entry);
+                        html += `<div class="search-formula-card search-clickable" data-result-type="textbook_entry" data-result-index="${idx}">`;
+                        html += `<div class="sf-name">涪陵第 ${entry.fuling_article_num} 条</div>`;
+                        html += `<div class="sf-composition">${entry.fuling_zh}</div>`;
+                        if (entry.songben_article_num) html += `<div class="sf-indications">宋本第 ${entry.songben_article_num} 条</div>`;
+                        html += `</div>`;
+                    }
+                }
+
                 // Formulas
                 for (const [category, formulas] of Object.entries(data.categories)) {
                     html += `<div class="search-category-header">— ${category} —</div>`;
@@ -1898,36 +1920,6 @@
                                 <div class="sf-indications">主治：${f.indications}</div>
                                 <div class="sf-matches">匹配：${f.matches.join('、')}</div>
                             </div>`;
-                    }
-                }
-
-                // Song original text
-                if (data.articles && data.articles.length) {
-                    html += `<div class="search-category-header">— 原文：宋本《伤寒论》 —</div>`;
-                    for (const a of data.articles) {
-                        html += `<div class="search-formula-card search-clickable" data-result-type="song_article" data-result-index="${data.articles.indexOf(a)}">`;
-                        html += `<div class="sf-name">第 ${a.article_num} 条 [${a.channel}]</div>`;
-                        html += `<div class="sf-composition">宋本：${a.original_zh}</div>`;
-                        if (a.fuling) {
-                            html += `<div class="sf-indications">涪陵古本 ${a.fuling.fuling_article_num}：${a.fuling.fuling_zh}</div>`;
-                        }
-                        html += `</div>`;
-                    }
-                }
-
-                // Fuling original text
-                if (data.fuling_articles && data.fuling_articles.length) {
-                    html += `<div class="search-category-header">— 原文：原本/涪陵古本《伤寒杂病论》 —</div>`;
-                    for (const f of data.fuling_articles) {
-                        html += `<div class="search-formula-card search-clickable" data-result-type="fuling_article" data-result-index="${data.fuling_articles.indexOf(f).toString()}">`;
-                        html += `<div class="sf-name">涪陵古本第 ${f.fuling_article_num} 条</div>`;
-                        html += `<div class="sf-composition">${f.fuling_zh}</div>`;
-                        if (f.song_article_num) {
-                            html += `<div class="sf-indications">→ 宋本第 ${f.song_article_num} 条</div>`;
-                        } else {
-                            html += `<div class="sf-indications">（宋本无此条）</div>`;
-                        }
-                        html += `</div>`;
                     }
                 }
 
@@ -1944,23 +1936,10 @@
                             if (type === 'formula') {
                                 const key = this.dataset.resultKey;
                                 openFormulaPopup([key]);
-                            } else if (type === 'song_article') {
+                            } else if (type === 'textbook_entry') {
                                 const idx = parseInt(this.dataset.resultIndex);
-                                const article = searchData.articles[idx];
-                                if (article) openArticlePopup(article);
-                            } else if (type === 'fuling_article') {
-                                const idx = parseInt(this.dataset.resultIndex);
-                                const fa = searchData.fuling_articles[idx];
-                                if (fa) openArticlePopup({
-                                    article_num: fa.fuling_article_num,
-                                    channel: fa.channel || '?',
-                                    original_zh: fa.fuling_zh,
-                                    translation_en: '',
-                                    fuling: fa.song_article_num ? {
-                                        fuling_article_num: fa.song_article_num,
-                                        fuling_zh: fa.song_zh
-                                    } : null
-                                });
+                                const entry = searchData.textbook_entries[idx];
+                                if (entry) openArticlePopup(entry);
                             }
                         } catch(e) {}
                     });
