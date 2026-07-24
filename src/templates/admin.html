@@ -508,6 +508,73 @@
             margin-bottom: var(--space-md);
             color: var(--gray-300);
         }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .settings-field {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+            margin-bottom: var(--space-md);
+        }
+
+        .settings-field label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .settings-field input,
+        .settings-field select {
+            width: 100%;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            padding: 0.65rem 0.75rem;
+            font: inherit;
+            color: var(--gray-800);
+            background: white;
+        }
+
+        .settings-help {
+            color: var(--gray-500);
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .provider-card {
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            background: white;
+        }
+
+        .provider-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .provider-status {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-sm);
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .provider-status.configured {
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--success);
+        }
         
         @media (max-width: 768px) {
             .admin-container {
@@ -591,6 +658,11 @@
                 <i class="fas fa-heartbeat"></i>
                 <span>System Health</span>
                 <span class="admin-tab-badge" id="health-badge">OK</span>
+            </div>
+            <div class="admin-tab" data-tab="tokens">
+                <i class="fas fa-key"></i>
+                <span>AI Tokens</span>
+                <span class="admin-tab-badge" id="tokens-badge">AI</span>
             </div>
         </div>
         
@@ -754,7 +826,7 @@
                                 <div id="api-status-indicator" style="width: 12px; height: 12px; border-radius: 50%; background: var(--warning);"></div>
                                 <span id="api-status-text" style="font-weight: 600; color: var(--gray-800);">Configuration Required</span>
                             </div>
-                            <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: var(--space-sm);" id="api-status-desc">DEEPSEEK_API_KEY environment variable</p>
+                            <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: var(--space-sm);" id="api-status-desc">Active AI provider token</p>
                         </div>
                     </div>
                     
@@ -776,6 +848,83 @@
                             <div>
                                 <div class="meta-label">Environment</div>
                                 <div class="meta-value" id="health-env">Development</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Tokens Tab -->
+            <div id="tokens-content" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-key"></i> AI Tokens</h2>
+                    <div class="tab-controls">
+                        <button class="btn btn-primary" onclick="saveAiConfig()">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+
+                <div class="error-state" id="tokens-error" style="display:none">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="tokens-error-text"></span>
+                </div>
+
+                <div class="loading-state" id="tokens-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading AI token settings...</p>
+                </div>
+
+                <div id="tokens-content-data" style="display:none">
+                    <div class="card" style="margin-bottom: var(--space-lg);">
+                        <div class="settings-field" style="max-width: 360px;">
+                            <label for="active-provider">Active Provider</label>
+                            <select id="active-provider">
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="claude">Claude</option>
+                            </select>
+                            <div class="settings-help">Chat requests use the selected provider immediately after saving.</div>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="provider-card">
+                            <div class="provider-header">
+                                <h3 style="color: var(--gray-700); margin: 0;">DeepSeek</h3>
+                                <span class="provider-status" id="deepseek-status">Not configured</span>
+                            </div>
+                            <div class="settings-field">
+                                <label for="deepseek-token">Token</label>
+                                <input id="deepseek-token" type="password" autocomplete="off" placeholder="Leave blank to keep existing token">
+                                <div class="settings-help" id="deepseek-token-help">No token saved.</div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="deepseek-model">Model</label>
+                                <input id="deepseek-model" type="text" placeholder="deepseek-chat">
+                            </div>
+                            <div class="settings-field">
+                                <label for="deepseek-base-url">Base URL</label>
+                                <input id="deepseek-base-url" type="text" placeholder="https://api.deepseek.com">
+                            </div>
+                        </div>
+
+                        <div class="provider-card">
+                            <div class="provider-header">
+                                <h3 style="color: var(--gray-700); margin: 0;">Claude</h3>
+                                <span class="provider-status" id="claude-status">Not configured</span>
+                            </div>
+                            <div class="settings-field">
+                                <label for="claude-token">Token</label>
+                                <input id="claude-token" type="password" autocomplete="off" placeholder="Leave blank to keep existing token">
+                                <div class="settings-help" id="claude-token-help">No token saved.</div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="claude-model">Model</label>
+                                <input id="claude-model" type="text" placeholder="claude-sonnet-5">
+                            </div>
+                            <div class="settings-field">
+                                <label for="claude-base-url">Base URL</label>
+                                <input id="claude-base-url" type="text" placeholder="https://api.anthropic.com">
                             </div>
                         </div>
                     </div>
@@ -829,6 +978,7 @@
             else if (tabName === 'conversations') loadConversations();
             else if (tabName === 'feedback') loadFeedback();
             else if (tabName === 'health') loadHealth();
+            else if (tabName === 'tokens') loadAiConfig();
         }
         
         // Attach tab click handlers
@@ -841,6 +991,12 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function sourceLabel(source) {
+            if (typeof source === 'string') return source;
+            if (!source || typeof source !== 'object') return '';
+            return source.title || source.label || source.name || source.key || source.type || 'Reference';
         }
         
         // Error handling
@@ -990,6 +1146,79 @@
                     showError('feedback-error', `Failed to load feedback: ${err.message}`);
                 });
         }
+
+        function applyAiConfig(data) {
+            document.getElementById('active-provider').value = data.active_provider || 'deepseek';
+            ['deepseek', 'claude'].forEach(provider => {
+                const cfg = data.providers?.[provider] || {};
+                document.getElementById(`${provider}-model`).value = cfg.model || '';
+                document.getElementById(`${provider}-base-url`).value = cfg.base_url || '';
+                document.getElementById(`${provider}-token`).value = '';
+                const status = document.getElementById(`${provider}-status`);
+                const help = document.getElementById(`${provider}-token-help`);
+                if (cfg.api_key_configured) {
+                    status.textContent = 'Configured';
+                    status.classList.add('configured');
+                    help.textContent = `Saved token: ${cfg.api_key_masked}`;
+                } else {
+                    status.textContent = 'Not configured';
+                    status.classList.remove('configured');
+                    help.textContent = 'No token saved.';
+                }
+            });
+            document.getElementById('tokens-badge').textContent = (data.active_provider || 'AI').toUpperCase();
+        }
+
+        function loadAiConfig() {
+            const loading = document.getElementById('tokens-loading');
+            const content = document.getElementById('tokens-content-data');
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            hideError('tokens-error');
+
+            fetchJson('/admin/api/ai-config')
+                .then(data => {
+                    applyAiConfig(data);
+                    loading.style.display = 'none';
+                    content.style.display = 'block';
+                })
+                .catch(err => {
+                    loading.style.display = 'none';
+                    showError('tokens-error', `Failed to load AI token settings: ${err.message}`);
+                });
+        }
+
+        function saveAiConfig() {
+            hideError('tokens-error');
+            const payload = {
+                active_provider: document.getElementById('active-provider').value,
+                providers: {
+                    deepseek: {
+                        api_key: document.getElementById('deepseek-token').value.trim(),
+                        model: document.getElementById('deepseek-model').value.trim(),
+                        base_url: document.getElementById('deepseek-base-url').value.trim()
+                    },
+                    claude: {
+                        api_key: document.getElementById('claude-token').value.trim(),
+                        model: document.getElementById('claude-model').value.trim(),
+                        base_url: document.getElementById('claude-base-url').value.trim()
+                    }
+                }
+            };
+
+            fetchJson('/admin/api/ai-config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+                .then(data => {
+                    applyAiConfig(data);
+                    loadHealth();
+                })
+                .catch(err => {
+                    showError('tokens-error', `Failed to save AI token settings: ${err.message}`);
+                });
+        }
         
         // Health check
         function loadHealth() {
@@ -1029,17 +1258,25 @@
                             document.getElementById('db-status-desc').textContent = 'Some files may not be accessible';
                         });
                     
-                    // API key status
-                    const apiStatus = localStorage.getItem('api_key_status') || 'unknown';
-                    if (apiStatus === 'configured') {
-                        document.getElementById('api-status-indicator').style.background = 'var(--success)';
-                        document.getElementById('api-status-text').textContent = 'Configured';
-                        document.getElementById('api-status-desc').textContent = 'DeepSeek API key is configured';
-                    } else {
-                        document.getElementById('api-status-indicator').style.background = 'var(--warning)';
-                        document.getElementById('api-status-text').textContent = 'Configuration Required';
-                        document.getElementById('api-status-desc').textContent = 'DEEPSEEK_API_KEY environment variable needed for full functionality';
-                    }
+                    fetchJson('/admin/api/ai-config')
+                        .then(config => {
+                            const provider = config.active_provider || 'deepseek';
+                            const providerConfig = config.providers?.[provider] || {};
+                            if (providerConfig.api_key_configured) {
+                                document.getElementById('api-status-indicator').style.background = 'var(--success)';
+                                document.getElementById('api-status-text').textContent = 'Configured';
+                                document.getElementById('api-status-desc').textContent = `${providerConfig.label || provider} token configured (${providerConfig.model || 'model unset'})`;
+                            } else {
+                                document.getElementById('api-status-indicator').style.background = 'var(--warning)';
+                                document.getElementById('api-status-text').textContent = 'Configuration Required';
+                                document.getElementById('api-status-desc').textContent = `${providerConfig.label || provider} token needed for full functionality`;
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('api-status-indicator').style.background = 'var(--warning)';
+                            document.getElementById('api-status-text').textContent = 'Unknown';
+                            document.getElementById('api-status-desc').textContent = 'Could not load AI provider configuration';
+                        });
                     
                     // Show content
                     loading.style.display = 'none';
@@ -1128,7 +1365,7 @@
                                     <div class="message-sources">
                                         <div class="sources-label">References</div>
                                         <div class="sources-list">
-                                            ${msg.sources.map(s => `<span class="source-tag">${escapeHtml(s)}</span>`).join('')}
+                                            ${msg.sources.map(s => `<span class="source-tag">${escapeHtml(sourceLabel(s))}</span>`).join('')}
                                         </div>
                                     </div>
                                 `;

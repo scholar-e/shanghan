@@ -7,9 +7,11 @@ import os
 import functools
 import logging
 import re
+import time
 from datetime import datetime
 
 from logger import get_logger
+from pinyin_utils import chinese_to_pinyin, normalize_pinyin
 
 logger = get_logger("database")
 
@@ -100,6 +102,46 @@ def _make_preview(content, terms, length=300):
     return content[start:end]
 
 
+def _is_latin_query(query):
+    text = str(query or "")
+    return bool(re.search(r"[A-Za-z]", text)) and not bool(re.search(r"[\u4e00-\u9fff]", text))
+
+
+def _score_lesson_match(item, query, terms):
+    """Rank lesson hits so broad/common terms do not always return early lessons."""
+    content = item.get("content", "") or ""
+    haystack = " ".join(
+        str(item.get(field, "") or "")
+        for field in ("lesson_id", "title", "category", "subcategory", "source_path")
+    )
+    haystack = f"{haystack} {content}".lower()
+    query_text = str(query or "").strip().lower()
+    score = 0
+
+    explicit_lesson = re.search(r"(?:lecture|lesson|课(?:程)?|讲)\s*(\d{1,4})", query_text, re.IGNORECASE)
+    if explicit_lesson:
+        lesson_id = f"lesson{int(explicit_lesson.group(1)):04d}"
+        if item.get("lesson_id") == lesson_id:
+            score += 1000
+
+    if query_text and len(query_text) >= 3 and query_text in haystack:
+        score += 80
+
+    for term in terms:
+        if term.isdigit():
+            continue
+        term_lower = term.lower()
+        count = haystack.count(term_lower)
+        if count:
+            score += min(count, 8) * max(len(term_lower), 2)
+            if term_lower in str(item.get("title", "")).lower():
+                score += 30
+            if term_lower in str(item.get("category", "")).lower() or term_lower in str(item.get("subcategory", "")).lower():
+                score += 20
+
+    return score
+
+
 def get_connection():
     global _connection
     if _connection is None:
@@ -116,8 +158,17 @@ def get_connection():
 def write_lock(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        with _write_lock:
-            return func(*args, **kwargs)
+        last_error = None
+        for attempt in range(6):
+            try:
+                with _write_lock:
+                    return func(*args, **kwargs)
+            except sqlite3.OperationalError as exc:
+                if "locked" not in str(exc).lower():
+                    raise
+                last_error = exc
+                time.sleep(0.25 * (attempt + 1))
+        raise last_error
     return wrapper
 
 
@@ -197,6 +248,17 @@ def init_db():
             song_zh TEXT DEFAULT NULL,
             channel TEXT DEFAULT ''
         );
+
+        CREATE TABLE IF NOT EXISTS zabing_articles (
+            entry_key TEXT PRIMARY KEY,
+            fuling_ref TEXT NOT NULL,
+            fuling_zh TEXT NOT NULL,
+            comparison_ref TEXT DEFAULT NULL,
+            comparison_zh TEXT DEFAULT NULL,
+            comparison_book TEXT DEFAULT '金匮',
+            chapter_title TEXT DEFAULT '',
+            source_path TEXT DEFAULT ''
+        );
     """)
     conn.commit()
 
@@ -242,7 +304,11 @@ def append_messages(session_id, user_email, new_messages):
         "SELECT messages FROM conversations WHERE session_id = ?", (session_id,)
     ).fetchone()
     if row:
-        existing = json.loads(row["messages"])
+        try:
+            existing = json.loads(row["messages"])
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(f"Malformed conversation payload during append: {session_id}")
+            existing = []
         existing.extend(new_messages)
         messages = existing
     else:
@@ -260,7 +326,13 @@ def get_messages(session_id):
     row = conn.execute(
         "SELECT messages FROM conversations WHERE session_id = ?", (session_id,)
     ).fetchone()
-    return json.loads(row["messages"]) if row else []
+    if not row:
+        return []
+    try:
+        return json.loads(row["messages"])
+    except (json.JSONDecodeError, TypeError):
+        logger.warning(f"Malformed conversation payload during read: {session_id}")
+        return []
 
 
 @with_db
@@ -419,20 +491,35 @@ def search_lessons(query):
     if not terms:
         return []
 
+    keyword_terms = [term for term in terms if not term.isdigit()]
+    lesson_number = re.search(r'(?:lecture|lesson|课(?:程)?|讲)\s*(\d{1,4})', str(query or ""), re.IGNORECASE)
+    if not keyword_terms and not lesson_number:
+        return []
+
     fields = ["content", "lesson_id", "title", "category", "subcategory", "source_path"]
     conditions, params = _like_conditions(fields, terms)
 
     sql = f"""SELECT id, lesson_id, title, category, subcategory,
                      content, word_count
               FROM lessons WHERE {' OR '.join(conditions)}
-              ORDER BY lesson_id LIMIT 10"""
+              ORDER BY lesson_id LIMIT 50"""
     rows = conn.execute(sql, params).fetchall()
     results = []
+    seen_lesson_ids = set()
     for row in rows:
         item = dict(row)
-        item["preview"] = _make_preview(item.pop("content", ""), terms)
+        lesson_id = item.get("lesson_id")
+        if lesson_id in seen_lesson_ids:
+            continue
+        seen_lesson_ids.add(lesson_id)
+        score = _score_lesson_match(item, query, terms)
+        if score <= 0:
+            continue
+        item["match_score"] = score
+        item["preview"] = _make_preview(item.pop("content", ""), keyword_terms or terms)
         results.append(item)
-    return results
+    results.sort(key=lambda item: (-item["match_score"], item["lesson_id"]))
+    return results[:50]
 
 
 @with_db
@@ -500,7 +587,7 @@ def search_articles(query):
     fields = ["original_zh", "translation_en", "channel", "pattern", "CAST(article_num AS TEXT)"]
     conditions, params = _like_conditions(fields, keyword_terms)
 
-    sql = f"SELECT * FROM shl_articles WHERE {' OR '.join(conditions)} ORDER BY article_num LIMIT 10"
+    sql = f"SELECT * FROM shl_articles WHERE {' OR '.join(conditions)} ORDER BY article_num LIMIT 50"
     rows.extend(row for row in conn.execute(sql, params).fetchall() if row["article_num"] not in seen_nums)
     return [dict(r) for r in rows]
 
@@ -549,6 +636,78 @@ def get_fuling_article(fuling_article_num):
     return dict(row) if row else None
 
 
+@write_lock
+@with_db
+def clear_zabing_articles():
+    conn = get_connection()
+    conn.execute("DELETE FROM zabing_articles")
+    conn.commit()
+
+
+@write_lock
+@with_db
+def save_zabing_article(entry_key, fuling_ref, fuling_zh, comparison_ref, comparison_zh, comparison_book, chapter_title, source_path):
+    conn = get_connection()
+    conn.execute(
+        """INSERT OR REPLACE INTO zabing_articles
+           (entry_key, fuling_ref, fuling_zh, comparison_ref, comparison_zh, comparison_book, chapter_title, source_path)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (entry_key, fuling_ref, fuling_zh, comparison_ref, comparison_zh, comparison_book, chapter_title, source_path),
+    )
+    conn.commit()
+
+
+@with_db
+def zabing_article_count():
+    conn = get_connection()
+    return conn.execute("SELECT COUNT(*) FROM zabing_articles").fetchone()[0]
+
+
+@with_db
+def search_zabing_articles(query):
+    conn = get_connection()
+    raw = str(query or "").strip()
+    terms = parse_text_query(query)
+    ref_terms = re.findall(r"\b\d{1,2}\.\d{1,3}\b", raw)
+    if not terms and not ref_terms:
+        return []
+
+    rows = []
+    seen = set()
+    for ref in ref_terms:
+        for row in conn.execute(
+            """SELECT * FROM zabing_articles
+               WHERE fuling_ref = ? OR comparison_ref = ?
+               ORDER BY fuling_ref LIMIT 20""",
+            (ref, ref),
+        ).fetchall():
+            if row["entry_key"] not in seen:
+                rows.append(row)
+                seen.add(row["entry_key"])
+
+    keyword_terms = [term for term in terms if not term.isdigit()]
+    if _is_latin_query(query):
+        normalized_query = normalize_pinyin(query)
+        for row in conn.execute("SELECT * FROM zabing_articles ORDER BY fuling_ref").fetchall():
+            if row["entry_key"] in seen:
+                continue
+            pinyin_text = normalize_pinyin(chinese_to_pinyin(f"{row['fuling_zh']} {row['comparison_zh'] or ''}"))
+            if normalized_query and normalized_query in pinyin_text:
+                rows.append(row)
+                seen.add(row["entry_key"])
+
+    if keyword_terms:
+        fields = ["fuling_zh", "comparison_zh", "chapter_title", "fuling_ref", "comparison_ref"]
+        conditions, params = _like_conditions(fields, keyword_terms)
+        sql = f"SELECT * FROM zabing_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_ref LIMIT 100"
+        for row in conn.execute(sql, params).fetchall():
+            if row["entry_key"] not in seen:
+                rows.append(row)
+                seen.add(row["entry_key"])
+
+    return [dict(row) for row in rows[:100]]
+
+
 @with_db
 def search_fuling_articles(query):
     conn = get_connection()
@@ -560,20 +719,37 @@ def search_fuling_articles(query):
     article_nums = [int(term) for term in terms if term.isdigit()]
     if article_nums:
         placeholders = ",".join("?" for _ in article_nums)
+        query_lower = query.lower()
+        prefer_song = "宋本" in query or "song" in query_lower
+        number_column = "song_article_num" if prefer_song else "fuling_article_num"
         rows.extend(conn.execute(
-            f"SELECT * FROM fuling_articles WHERE fuling_article_num IN ({placeholders}) ORDER BY fuling_article_num",
+            f"""
+            SELECT * FROM fuling_articles
+            WHERE {number_column} IN ({placeholders})
+            ORDER BY fuling_article_num
+            """,
             article_nums
         ).fetchall())
 
     seen_nums = {row["fuling_article_num"] for row in rows}
     keyword_terms = [term for term in terms if not term.isdigit()]
+    if _is_latin_query(query):
+        normalized_query = normalize_pinyin(query)
+        for row in conn.execute("SELECT * FROM fuling_articles ORDER BY fuling_article_num").fetchall():
+            if row["fuling_article_num"] in seen_nums:
+                continue
+            pinyin_text = normalize_pinyin(chinese_to_pinyin(f"{row['fuling_zh']} {row['song_zh']}"))
+            if normalized_query and normalized_query in pinyin_text:
+                rows.append(row)
+                seen_nums.add(row["fuling_article_num"])
+
     if not keyword_terms:
-        return [dict(r) for r in rows[:10]]
+        return [dict(r) for r in rows[:50]]
 
     fields = ["fuling_zh", "song_zh", "channel", "CAST(fuling_article_num AS TEXT)", "CAST(song_article_num AS TEXT)"]
     conditions, params = _like_conditions(fields, keyword_terms)
 
-    sql = f"SELECT * FROM fuling_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_article_num LIMIT 10"
+    sql = f"SELECT * FROM fuling_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_article_num LIMIT 50"
     rows.extend(row for row in conn.execute(sql, params).fetchall() if row["fuling_article_num"] not in seen_nums)
     return [dict(r) for r in rows]
 

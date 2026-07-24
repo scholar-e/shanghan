@@ -65,8 +65,9 @@ def parse_textbook(textbook_path):
     i = 0
     while i < len(lines):
         line = lines[i]
-        # Look for 涪陵古本 N:
-        m = re.match(r'\s*涪陵古本\s*(\d+)\s*:\s*(.*)', line)
+        # Look for 涪陵古本 N:. The newest textbook starts line 1 as
+        # a bare "1:" before switching to explicit 涪陵古本 labels.
+        m = re.match(r'\s*(?:涪陵古本\s*)?(\d+)\s*:\s*(.*)', line)
         if m:
             fuling_num = int(m.group(1))
             fuling_text = m.group(2).strip()
@@ -92,7 +93,7 @@ def parse_textbook(textbook_path):
                         song_text = None  # "无此条"
                     break
                 # If we hit another 涪陵古本 or FORMULA or commentary marker, stop
-                elif re.match(r'\s*涪陵古本\s*\d+\s*:', next_line) or next_line.startswith('FORMULA') or next_line.startswith('【COMMENTARY'):
+                elif re.match(r'\s*(?:涪陵古本\s*)?\d+\s*:', next_line) or next_line.startswith('FORMULA') or next_line.startswith('【COMMENTARY'):
                     break
                 else:
                     # It could be continuation of Fuling text

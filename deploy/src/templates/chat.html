@@ -378,6 +378,14 @@
         .source-number:hover {
             opacity: 0.8;
         }
+        .source-number.no-popup {
+            cursor: default;
+            background: var(--gray-200);
+            color: var(--gray-600);
+        }
+        .source-number.no-popup:hover {
+            opacity: 1;
+        }
 
         .presc-notification {
             display: flex;
@@ -424,6 +432,12 @@
         }
         .formula-popup-overlay.active {
             display: flex;
+        }
+        #articlePopup.active {
+            z-index: 1002;
+        }
+        #citationPopup.active {
+            z-index: 1003;
         }
         .formula-popup {
             background: white;
@@ -490,23 +504,28 @@
         .fp-en {
             font-size: 0.9rem;
             color: var(--gray-500);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
         .fp-section {
-            margin-top: 0.75rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
         }
         .fp-section-title {
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.78rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--gray-500);
-            margin-bottom: 0.25rem;
+            letter-spacing: 0.07em;
+            color: var(--primary-dark);
+            margin-bottom: 0.6rem;
         }
+        .fp-citations { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0.25rem; }
+        .fp-citation { display: inline-flex; align-items: center; padding: 0.35rem 0.6rem; border: 1px solid var(--primary); border-radius: 999px; background: var(--primary-light); color: var(--primary-dark); font-size: 0.78rem; font-weight: 700; }
+        .fp-citation-link { cursor: pointer; }
         .fp-text {
             font-size: 0.95rem;
             color: var(--gray-700);
-            line-height: 1.5;
+            line-height: 1.65;
         }
         .fp-table {
             width: 100%;
@@ -521,10 +540,12 @@
             padding: 0.4rem 0.5rem;
         }
         .fp-table td {
-            padding: 0.4rem 0.5rem;
+            padding: 0.55rem 0.5rem;
             border-bottom: 1px solid var(--gray-100);
             color: var(--gray-700);
         }
+        .fp-table tbody tr:last-child td { border-bottom: 0; }
+        .fp-table tbody tr:nth-child(even) { background: var(--gray-50); }
         
         .feedback-container {
             display: flex;
@@ -1063,6 +1084,7 @@
             align-items: stretch;
             gap: 0.625rem;
         }
+        .formula-page-title { margin: 0 0 1rem; color: var(--gray-900); font-size: 1.1rem; font-weight: 700; }
         .formula-pill {
             min-height: 54px;
             border: 1px solid var(--gray-200);
@@ -1088,6 +1110,8 @@
             color: var(--gray-900);
             line-height: 1.2;
         }
+        .formula-pill-subtitle { margin-top: 0.3rem; color: var(--gray-600); font-size: 0.78rem; line-height: 1.35; }
+        .formula-pill-reference { margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px solid var(--gray-100); color: var(--primary-dark); font-size: 0.72rem; font-weight: 600; }
         
         .loading {
             text-align: center;
@@ -1235,6 +1259,7 @@
     
     <div class="tab-content" id="formulas-tab">
         <div class="tab-page">
+            <h2 class="formula-page-title">方剂 · Formulas</h2>
             <div class="formula-grid" id="formula-grid">
                 <div class="loading">方剂不可用</div>
             </div>
@@ -1271,11 +1296,19 @@
 
         // Build a name-to-key lookup for popup detection
         const FORMULA_NAME_MAP = {};
+        function addFormulaName(name, key) {
+            if (!name || String(name).trim().length < 2) return;
+            const cleanName = String(name).trim();
+            if (!FORMULA_NAME_MAP[cleanName]) FORMULA_NAME_MAP[cleanName] = [];
+            FORMULA_NAME_MAP[cleanName].push(key);
+        }
         for (const [key, f] of Object.entries(FORMULAS_DATA)) {
-            const names = [f.names.zh, f.names.pinyin, f.names.en];
+            const names = [f.names.zh, f.names.pinyin, f.names.en].filter(Boolean);
             for (const name of names) {
-                if (!FORMULA_NAME_MAP[name]) FORMULA_NAME_MAP[name] = [];
-                FORMULA_NAME_MAP[name].push(key);
+                addFormulaName(name, key);
+                if (f.names.zh && name === f.names.zh && name.endsWith('方') && name.length > 2) {
+                    addFormulaName(name.slice(0, -1), key);
+                }
             }
         }
 
@@ -1407,10 +1440,14 @@
             let itemsHtml = '';
             for (let i = 0; i < sources.length; i++) {
                 const s = sources[i];
-                const title = typeof s === 'string' ? s : s.title;
+                const title = typeof s === 'string' ? s : (s.title_zh || s.title);
                 const num = i + 1;
+                const noPopup = typeof s !== 'string' && s.hide_in_popup;
+                const numberClass = noPopup ? 'source-number no-popup' : 'source-number';
+                const clickHandler = noPopup ? '' : ' onclick="showCitationPopup(event, ' + num + ')"';
+                const tooltip = noPopup ? ' title="讲义内容仅管理员可在消息审核中查看"' : '';
                 itemsHtml += '<div class="source-item">' +
-                    '<span class="source-number" onclick="showCitationPopup(event, ' + num + ')">' + num + '</span>' +
+                    '<span class="' + numberClass + '"' + clickHandler + tooltip + '>' + num + '</span>' +
                     '<span id="source-ref-' + num + '">' + escapeHtml(title) + '</span>' +
                     '</div>';
             }
@@ -1610,6 +1647,27 @@
             return div.innerHTML;
         }
 
+        function formulaLinkHtml(match, name) {
+            const keys = FORMULA_NAME_MAP[name];
+            if (!keys || !keys.length) return match;
+            const dataKeys = keys.map(k => `'${k}'`).join(',');
+            return `<span class="formula-link" onclick="event.stopPropagation(); openFormulaPopup([${dataKeys}])">${match}</span>`;
+        }
+
+        function linkFormulaReferences(text) {
+            let html = escapeHtml(text || '');
+            const sortedNames = Object.keys(FORMULA_NAME_MAP)
+                .filter(name => name && name.length >= 2)
+                .sort((a, b) => b.length - a.length);
+            const escapedToName = {};
+            const pattern = sortedNames.map(name => {
+                const escaped = escapeHtml(name);
+                escapedToName[escaped] = name;
+                return escaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }).join('|');
+            return pattern ? html.replace(new RegExp(pattern, 'g'), (match) => formulaLinkHtml(match, escapedToName[match])) : html;
+        }
+
         // Post-process bot message: link formula names and convert [N] citations
         function processBotMessage(html) {
             // Convert [N] citation markers to clickable superscripts
@@ -1618,14 +1676,12 @@
             // Wrap known formula names in clickable popup links
             const sortedNames = Object.keys(FORMULA_NAME_MAP).sort((a, b) => b.length - a.length);
             for (const name of sortedNames) {
+                if (!name) continue;
                 // Only match inside HTML text nodes, not inside tags or attributes
                 const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const regex = new RegExp(`(?<!<[^>]*>)(${escapedName})(?![^<]*>)`, 'g');
                 html = html.replace(regex, (match) => {
-                    const keys = FORMULA_NAME_MAP[name];
-                    if (!keys) return match;
-                    const dataKeys = keys.map(k => `'${k}'`).join(',');
-                    return `<span class="formula-link" onclick="openFormulaPopup([${dataKeys}])">${match}</span>`;
+                    return formulaLinkHtml(match, name);
                 });
             }
 
@@ -1646,7 +1702,7 @@
             // visible in the references list, but it has no popup.
             if (typeof source !== 'string' && source.hide_in_popup) return;
 
-            const title = typeof source === 'string' ? source : source.title;
+            const title = typeof source === 'string' ? source : (source.title_zh || source.title);
             const content = typeof source === 'string' ? null : source.content;
 
             body.innerHTML = `
@@ -1686,6 +1742,51 @@
             setTimeout(() => { notif.style.opacity = '0.6'; }, 8000);
         }
 
+        async function openFormulaReference(event, key) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const f = FORMULAS_DATA[key];
+            const lineNum = f && f.yuanben_article_num;
+            if (!lineNum) return;
+            try {
+                const res = await fetch(`/api/search?q=${encodeURIComponent(lineNum)}&mode=text`);
+                const data = await res.json();
+                const entries = data.fuling_articles || data.textbook_entries || [];
+                const article = entries.find(entry => String(entry.fuling_article_num) === String(lineNum)) || entries[0];
+                if (article) openArticlePopup(article);
+            } catch (err) {
+                console.error('Formula reference lookup failed', err);
+            }
+        }
+        window.openFormulaReference = openFormulaReference;
+
+        function formulaCitationLabel(f) {
+            if (!f) return '';
+            const comparison = f.comparison_article_num || f.songben_article_num;
+            const comparisonBook = f.comparison_book || '宋本';
+            if (f.yuanben_article_num) {
+                return `涪陵古本第 ${escapeHtml(f.yuanben_article_num)} 条${comparison ? `（${escapeHtml(comparisonBook)}第 ${escapeHtml(comparison)} 条）` : ''}`;
+            }
+            return comparison ? `${escapeHtml(comparisonBook)}第 ${escapeHtml(comparison)} 条` : '';
+        }
+
+        function formulaCitationHtml(f, key) {
+            const label = formulaCitationLabel(f);
+            if (!label) return '';
+            return `<span role="button" tabindex="0" class="fp-citation fp-citation-link" data-formula-key="${escapeHtml(key)}">${label}</span>`;
+        }
+
+        function bindFormulaCitationLinks(root) {
+            root.querySelectorAll('.fp-citation-link').forEach(link => {
+                link.addEventListener('click', event => openFormulaReference(event, link.dataset.formulaKey));
+                link.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') openFormulaReference(event, link.dataset.formulaKey);
+                });
+            });
+        }
+
         // Open formula popup with formula data
         function openFormulaPopup(keys) {
             const overlay = document.getElementById('formulaPopup');
@@ -1696,53 +1797,49 @@
             for (const key of keys) {
                 const f = FORMULAS_DATA[key];
                 if (!f) continue;
-                const refs = [
-                    f.yuanben_article_num ? `涪陵 ${escapeHtml(f.yuanben_article_num)}` : '',
-                    f.songben_article_num ? `宋本 ${escapeHtml(f.songben_article_num)}` : ''
-                ].filter(Boolean).join(' · ');
-                const sourceHtml = f.source_text
-                    ? `<div class="fp-text" style="white-space: pre-wrap;">${escapeHtml(f.source_text)}</div>`
-                    : '';
                 const compHtml = (f.composition || []).map(h =>
                     `<tr><td>${escapeHtml(h.herb || '')}</td><td>${escapeHtml(h.pinyin || '')}</td><td>${escapeHtml(h.en || '')}</td><td>${escapeHtml(h.dosage || '')}</td><td>${escapeHtml(h.role || '')}</td></tr>`
                 ).join('');
-                const compositionHtml = sourceHtml || `
+                const hasStructuredDetails = (f.composition || []).some(h => h.pinyin || h.en || h.dosage || h.role);
+                const compositionText = (f.composition || []).map(h => h.herb || '').filter(Boolean).join('\n');
+                const compositionHtml = !hasStructuredDetails && compositionText
+                    ? `<div class="fp-text" style="white-space: pre-wrap;">${escapeHtml(compositionText)}</div>`
+                    : `
                     <table class="fp-table">
                         <thead><tr><th>中药</th><th>拼音</th><th>英文</th><th>剂量</th><th>角色</th></tr></thead>
                         <tbody>${compHtml}</tbody>
                     </table>
                 `;
+                const preparationHtml = (f.preparation_text || '').trim()
+                    ? `<div class="fp-section">
+                            <div class="fp-section-title">煎服法</div>
+                            <div class="fp-text" style="white-space: pre-wrap;">${escapeHtml(f.preparation_text || '')}</div>
+                        </div>`
+                    : '';
+                const usageHtml = (f.indications || '').trim()
+                    ? `<div class="fp-section">
+                            <div class="fp-section-title">条文用法</div>
+                            <div class="fp-text">${escapeHtml(f.indications || '')}</div>
+                        </div>`
+                    : '';
 
                 html += `
                     <div class="fp-formula">
                         <div class="fp-title">${escapeHtml(f.names.zh || '')} <span class="fp-pinyin">${escapeHtml(f.names.pinyin || '')}</span></div>
                         <div class="fp-en">${escapeHtml(f.names.en || '')}</div>
-                        ${refs ? `
-                        <div class="fp-section">
-                            <div class="fp-section-title">条文对应</div>
-                            <div class="fp-text">${refs}</div>
-                        </div>` : ''}
+                        ${formulaCitationLabel(f) ? `<div class="fp-citations">${formulaCitationHtml(f, key)}</div>` : ''}
                         <div class="fp-section">
                             <div class="fp-section-title">组成</div>
                             ${compositionHtml}
                         </div>
-                        <div class="fp-section">
-                            <div class="fp-section-title">主治</div>
-                            <div class="fp-text">${escapeHtml(f.indications || '')}</div>
-                        </div>
-                        <div class="fp-section">
-                            <div class="fp-section-title">功能</div>
-                            <div class="fp-text">${escapeHtml(f.functions || '')}</div>
-                        </div>
-                        <div class="fp-section">
-                            <div class="fp-section-title">证型</div>
-                            <div class="fp-text">${escapeHtml(f.pattern || '')}</div>
-                        </div>
+                        ${preparationHtml}
+                        ${usageHtml}
                     </div>
                 `;
             }
 
             body.innerHTML = html || '<div style="text-align:center;padding:2rem;color:var(--gray-500);">Formula data not found.</div>';
+            bindFormulaCitationLinks(body);
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
@@ -1764,9 +1861,15 @@
             if (!overlay || !body) return;
 
             if (article.fuling_article_num) {
-                const songbenTag = article.songben_article_num
-                    ? `<span style="font-size:0.8rem;color:var(--gray-500);font-weight:400;margin-left:.5rem;">宋本第 ${escapeHtml(article.songben_article_num)} 条</span>` : '';
-                body.innerHTML = `<div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:.75rem;">涪陵第 ${escapeHtml(article.fuling_article_num)} 条 ${songbenTag}</div><div style="font-size:.9rem;color:var(--gray-800);line-height:1.7;background:#fff8f0;border:1px solid #f0dcc0;border-radius:8px;padding:1rem;">${escapeHtml(article.fuling_zh)}</div>`;
+                const comparisonBook = article.comparison_book || '宋本';
+                const songbenTitle = article.songben_article_num ? `${escapeHtml(comparisonBook)}第 ${escapeHtml(article.songben_article_num)} 条` : `${escapeHtml(comparisonBook)}：无此条`;
+                const songbenText = article.songben_zh ? linkFormulaReferences(article.songben_zh) : '无此条';
+                body.innerHTML = `
+                    <div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:.75rem;">涪陵古本第 ${escapeHtml(article.fuling_article_num)} 条</div>
+                    <div style="font-size:.9rem;color:var(--gray-800);line-height:1.7;background:#fff8f0;border:1px solid #f0dcc0;border-radius:8px;padding:1rem;margin-bottom:1rem;">${linkFormulaReferences(article.fuling_zh || '')}</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:var(--gray-900);margin-bottom:.75rem;">${songbenTitle}</div>
+                    <div style="font-size:.9rem;color:var(--gray-800);line-height:1.7;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:1rem;">${songbenText}</div>
+                `;
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 return;
@@ -1861,6 +1964,26 @@
             textLabel.classList.toggle('active');
         }
 
+        const SEARCH_BATCH_SIZE = 10;
+
+        function searchCardAttrs(section, idx) {
+            const attrs = `data-search-section="${section}"`;
+            return idx >= SEARCH_BATCH_SIZE
+                ? `${attrs} data-search-hidden="true" style="display:none;"`
+                : attrs;
+        }
+
+        function showMoreSearchResults(section, button) {
+            const hidden = Array.from(document.querySelectorAll(`[data-search-section="${section}"][data-search-hidden="true"]`));
+            hidden.slice(0, SEARCH_BATCH_SIZE).forEach((el) => {
+                el.style.display = '';
+                el.removeAttribute('data-search-hidden');
+            });
+            if (!document.querySelector(`[data-search-section="${section}"][data-search-hidden="true"]`)) {
+                button?.remove();
+            }
+        }
+
         async function doSearch() {
             const input = document.getElementById('search-input');
             const results = document.getElementById('search-results');
@@ -1895,31 +2018,43 @@
                 let html = `<div class="search-count">找到 ${data.total} 条结果</div>`;
                 html += `<div id="search-results-data" style="display:none;">${escapeHtml(JSON.stringify(data))}</div>`;
 
-                // 教材条目置顶：涪陵为主条目，宋本编号仅作次级标签。
+                // 教材条目置顶：每条显示涪陵古本与宋本对照。
                 if (data.textbook_entries && data.textbook_entries.length) {
-                    html += `<div class="search-category-header">— 教材：涪陵 —</div>`;
-                    for (const entry of data.textbook_entries) {
-                        const idx = data.textbook_entries.indexOf(entry);
-                        html += `<div class="search-formula-card search-clickable" data-result-type="textbook_entry" data-result-index="${idx}">`;
-                        html += `<div class="sf-name">涪陵第 ${entry.fuling_article_num} 条</div>`;
-                        html += `<div class="sf-composition">${entry.fuling_zh}</div>`;
-                        if (entry.songben_article_num) html += `<div class="sf-indications">宋本第 ${entry.songben_article_num} 条</div>`;
+                    html += `<div class="search-category-header">— 教材条文对照 —</div>`;
+                    for (let idx = 0; idx < data.textbook_entries.length; idx++) {
+                        const entry = data.textbook_entries[idx];
+                        const comparisonBook = entry.comparison_book || '宋本';
+                        const songLabel = entry.songben_article_num ? `${escapeHtml(comparisonBook)}第 ${escapeHtml(entry.songben_article_num)} 条` : `${escapeHtml(comparisonBook)}：无此条`;
+                        const songText = entry.songben_zh ? escapeHtml(entry.songben_zh) : '无此条';
+                        html += `<div class="search-formula-card search-clickable" ${searchCardAttrs('textbook', idx)} data-result-type="textbook_entry" data-result-index="${idx}">`;
+                        html += `<div class="sf-name">涪陵古本第 ${escapeHtml(entry.fuling_article_num)} 条</div>`;
+                        html += `<div class="sf-composition">${linkFormulaReferences(entry.fuling_zh || '')}</div>`;
+                        html += `<div class="sf-name" style="margin-top:.75rem;">${songLabel}</div>`;
+                        html += `<div class="sf-indications">${entry.songben_zh ? linkFormulaReferences(entry.songben_zh) : songText}</div>`;
                         html += `</div>`;
+                    }
+                    if (data.textbook_entries.length > SEARCH_BATCH_SIZE) {
+                        html += `<button type="button" class="btn btn-secondary" style="margin:0.75rem 0 1rem;" onclick="showMoreSearchResults('textbook', this)">显示更多条文</button>`;
                     }
                 }
 
                 // Formulas
                 for (const [category, formulas] of Object.entries(data.categories)) {
+                    const sectionId = `formula-${category.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g, '-')}`;
                     html += `<div class="search-category-header">— ${category} —</div>`;
-                    for (const f of formulas) {
+                    for (let idx = 0; idx < formulas.length; idx++) {
+                        const f = formulas[idx];
                         const compHerbs = f.composition.map(h => h.herb).join('、');
                         html += `
-                            <div class="search-formula-card search-clickable" data-result-type="formula" data-result-key="${escapeHtml(f.key)}">
+                            <div class="search-formula-card search-clickable" ${searchCardAttrs(sectionId, idx)} data-result-type="formula" data-result-key="${escapeHtml(f.key)}">
                                 <div class="sf-name">${f.names.zh} ${f.names.pinyin} <span class="sf-en">${f.names.en}</span></div>
                                 <div class="sf-composition">组成：${compHerbs}</div>
-                                <div class="sf-indications">主治：${f.indications}</div>
+                                <div class="sf-indications">条文用法：${f.indications}</div>
                                 <div class="sf-matches">匹配：${f.matches.join('、')}</div>
                             </div>`;
+                    }
+                    if (formulas.length > SEARCH_BATCH_SIZE) {
+                        html += `<button type="button" class="btn btn-secondary" style="margin:0.75rem 0 1rem;" onclick="showMoreSearchResults('${escapeHtml(sectionId)}', this)">显示更多方剂</button>`;
                     }
                 }
 
@@ -1956,14 +2091,19 @@
         document.getElementById('search-btn')?.addEventListener('click', doSearch);
         
         // Formula index
+        function formulaOrder(formula) {
+            const number = parseInt(String(formula?.formula_number || ''), 10);
+            return Number.isFinite(number) ? number : 9999;
+        }
+
         function loadFormulas() {
             const grid = document.getElementById('formula-grid');
             if (!grid) return;
 
-            const entries = Object.entries(FORMULAS_DATA || {}).sort((a, b) => {
-                const aName = a[1]?.names?.pinyin || a[1]?.names?.zh || a[0];
-                const bName = b[1]?.names?.pinyin || b[1]?.names?.zh || b[0];
-                return aName.localeCompare(bName);
+            const entries = Object.entries(FORMULAS_DATA || {}).filter(([, formula]) => String(formula?.formula_number || '').trim()).sort((a, b) => {
+                const orderDiff = formulaOrder(a[1]) - formulaOrder(b[1]);
+                if (orderDiff) return orderDiff;
+                return String(a[0]).localeCompare(String(b[0]));
             });
 
             if (!entries.length) {
@@ -1973,14 +2113,21 @@
 
             grid.innerHTML = entries.map(([key, formula]) => {
                 const names = formula.names || {};
-                const title = names.zh || names.pinyin || names.en || key;
+                const baseTitle = names.zh || names.pinyin || names.en || key;
+                const number = String(formula.formula_number || '').trim();
+                const title = `${number && number !== '0' ? `方${number} · ` : ''}${baseTitle}`;
+                const subtitle = [names.zh, names.en].filter(Boolean).join(' · ');
+                const refs = formulaCitationHtml(formula, key);
                 return `
                     <button class="formula-pill" type="button" data-formula-key="${escapeHtml(key)}">
                         <div class="formula-pill-name">${escapeHtml(title)}</div>
+                        ${subtitle ? `<div class="formula-pill-subtitle">${escapeHtml(subtitle)}</div>` : ''}
+                        ${refs ? `<div class="formula-pill-reference">${refs}</div>` : ''}
                     </button>
                 `;
             }).join('');
 
+            bindFormulaCitationLinks(grid);
             grid.querySelectorAll('.formula-pill').forEach((button) => {
                 button.addEventListener('click', () => openFormulaPopup([button.dataset.formulaKey]));
             });
@@ -1995,5 +2142,9 @@
         // Initialize
         updateMessageCount();
     </script>
+    <script>
+        window.FORMULA_UI = {language:'zh', composition:'组成', preparation:'煎服法', usage:'条文用法', functions:'功能', pattern:'证型', fulingLine:'涪陵古本第', songbenLine:'宋本第', unavailable:'方剂不可用', tableHeaders:['中药','拼音','英文','剂量','角色']};
+    </script>
+    <script src="/static/js/formulas.js"></script>
 </body>
 </html>

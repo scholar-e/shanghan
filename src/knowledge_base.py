@@ -1,9 +1,9 @@
-"""Knowledge base for Shang Han Lun."""
+"""Knowledge base for Shang Han Za Bing Lun."""
 
 import os
 import re
 
-FORMULAS = {
+CURATED_FORMULAS = {
     "ma_huang_tang": {
         "names": {"zh": "麻黄汤", "pinyin": "Ma Huang Tang", "en": "Ephedra Decoction"},
         "composition": [
@@ -131,87 +131,164 @@ def _textbook_candidates():
     here = os.path.dirname(os.path.abspath(__file__))
     return [
         os.path.abspath(os.path.join(here, "..", "textbook.txt")),
+        os.path.abspath(os.path.join(here, "..", "textbook_zabing.txt")),
         os.path.abspath(os.path.join(here, "..", "deploy", "textbook.txt")),
+        os.path.abspath(os.path.join(here, "..", "deploy", "textbook_zabing.txt")),
         os.path.abspath(os.path.join(here, "..", "..", "textbook.txt")),
+        os.path.abspath(os.path.join(here, "..", "..", "textbook_zabing.txt")),
     ]
+
+
+def _clean_textbook_formula_composition(text):
+    text = re.sub(r"\s+", " ", text or "").strip()
+    if not text:
+        return ""
+
+    # Some add-on formulas begin with preparation wording before the added
+    # ingredients, e.g. "右以前七味，以水七升下芒硝三合 大黄 四分".
+    text = re.sub(
+        r"^右以前七味，以水[一二三四五六七八九十百千万半\d]+升下([\u4e00-\u9fff]{1,6})([一二三四五六七八九十百千万半\d]+(?:铢|两|升|合|枚|斤|尺|分))",
+        r"\1 \2",
+        text,
+    )
+
+    # Remove preparation, administration, and modification sections that are
+    # sometimes attached to the ingredient line in the source text.
+    cutoff_patterns = [
+        r"余依前法.*$",
+        r"服之.*$",
+        r"本云[:：].*$",
+        r"方见前.*$",
+        r"咳者[，,].*$",
+        r"若[胸渴腹胁心不呕].*$",
+        r"合[一二三四五六七八九十百千万\d]+味.*$",
+        r"以水[一二三四五六七八九十百千万半\d]+.*$",
+        r"煮取.*$",
+        r"温服.*$",
+    ]
+    for pattern in cutoff_patterns:
+        text = re.sub(pattern, "", text).strip()
+
+    return re.sub(r"\s+", " ", text).strip(" ，,；;。")
+
+
+def _split_textbook_formula_parts(block_lines):
+    """Split textbook formula block into ingredient and preparation text."""
+    if not block_lines:
+        return "", ""
+
+    first = re.sub(r"\s+", " ", block_lines[0]).strip()
+    rest = [line.strip() for line in block_lines[1:] if line.strip()]
+    prep_start = re.search(
+        r"(余依前法|服之|本云[:：]?|方见前|合[一二三四五六七八九十百千万\d]+味|以水[一二三四五六七八九十百千万半\d]+|煮取|温服|右(?:以前)?[一二三四五六七八九十百千万\d]*味|右于)",
+        first,
+    )
+    if prep_start:
+        ingredient_text = first[:prep_start.start()].strip()
+        prep_lines = [first[prep_start.start():].strip()] + rest
+    else:
+        ingredient_text = first
+        prep_lines = rest
+
+    return _clean_textbook_formula_composition(ingredient_text), "\n".join(prep_lines).strip()
 
 
 def load_textbook_formulas():
     """Parse FORMULA blocks from textbook.txt into the formula data shape."""
-    textbook_path = next((path for path in _textbook_candidates() if os.path.isfile(path)), None)
-    if not textbook_path:
+    textbook_paths = []
+    seen_paths = set()
+    for path in _textbook_candidates():
+        if os.path.isfile(path) and path not in seen_paths:
+            textbook_paths.append(path)
+            seen_paths.add(path)
+    if not textbook_paths:
         return {}
 
-    with open(textbook_path, encoding="utf-8") as f:
-        lines = f.read().splitlines()
-
     formulas = {}
-    i = 0
-    current_yuanben_article_num = ""
-    current_songben_article_num = ""
-    while i < len(lines):
-        line = lines[i].strip()
-        yuanben_match = re.match(r"^涪陵古本\s+(\d+):", line)
-        if yuanben_match:
-            current_yuanben_article_num = yuanben_match.group(1)
-        songben_match = re.match(r"^（宋本\s*(\d+)）", line)
-        if songben_match:
-            current_songben_article_num = songben_match.group(1)
+    for textbook_path in textbook_paths:
+        with open(textbook_path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
 
-        match = re.match(r"^FORMULA 方 \{\s*(\d+)\s*\}\s*(.+)$", line)
-        if not match:
-            i += 1
-            continue
-
-        number = match.group(1)
-        raw_title = match.group(2).strip()
-        title = _clean_formula_name(raw_title)
-        block_lines = []
-        i += 1
+        i = 0
+        current_yuanben_article_num = ""
+        current_songben_article_num = ""
+        current_yuanben_text = ""
+        current_songben_text = ""
+        current_comparison_book = "宋本"
         while i < len(lines):
-            next_line = lines[i].strip()
-            if next_line.startswith("FORMULA 方"):
-                break
-            if not next_line:
-                i += 1
-                if block_lines:
-                    break
-                continue
-            if (
-                next_line.startswith("•")
-                or next_line.startswith("【LINE")
-                or next_line.startswith("涪陵古本")
-                or next_line.startswith("（宋本")
-                or next_line.startswith("【COMMENTARY")
-            ):
-                break
-            block_lines.append(next_line)
-            i += 1
+            line = lines[i].strip()
+            yuanben_match = re.match(r"^涪陵古本\s+([\d.]+):\s*(.*)$", line)
+            if yuanben_match:
+                current_yuanben_article_num = yuanben_match.group(1)
+                current_yuanben_text = yuanben_match.group(2).strip()
+            comparison_match = re.match(r"^（(宋本|金匮)\s*([\d.]+)）\s*(.*)$", line)
+            if comparison_match:
+                current_comparison_book = comparison_match.group(1)
+                current_songben_article_num = comparison_match.group(2)
+                current_songben_text = comparison_match.group(3).strip()
 
-        source_text = "\n".join(block_lines).strip()
-        composition_text = block_lines[0] if block_lines else ""
-        method_text = "\n".join(block_lines[1:]).strip()
-        key = _formula_key(number, title)
-        formulas[key] = {
-            "names": {"zh": title, "pinyin": "", "en": f"Textbook formula {number}"},
-            "composition": [
-                {"herb": composition_text, "pinyin": "", "en": "", "dosage": "", "role": ""}
-            ] if composition_text else [],
-            "indications": method_text or source_text,
-            "functions": "",
-            "pattern": "Textbook / 原文方",
-            "formula_number": number,
-            "yuanben_article_num": current_yuanben_article_num,
-            "songben_article_num": current_songben_article_num,
-            "source_text": source_text,
-            "source": os.path.basename(textbook_path),
-        }
+            match = re.match(r"^FORMULA 方 \{\s*(\d+)\s*\}\s*(.+)$", line)
+            if not match:
+                i += 1
+                continue
+
+            number = match.group(1)
+            raw_title = match.group(2).strip()
+            title = _clean_formula_name(raw_title)
+            block_lines = []
+            i += 1
+            while i < len(lines):
+                next_line = lines[i].strip()
+                if next_line.startswith("FORMULA 方"):
+                    break
+                if not next_line:
+                    i += 1
+                    if block_lines:
+                        break
+                    continue
+                if (
+                    next_line.startswith("•")
+                    or next_line.startswith("【LINE")
+                    or next_line.startswith("涪陵古本")
+                    or next_line.startswith("（宋本")
+                    or next_line.startswith("（金匮")
+                    or next_line.startswith("【COMMENTARY")
+                ):
+                    break
+                block_lines.append(next_line)
+                i += 1
+
+            full_source_text = "\n".join(block_lines).strip()
+            composition_text, method_text = _split_textbook_formula_parts(block_lines)
+            key = _formula_key(number, title)
+            formulas[key] = {
+                "names": {"zh": title, "pinyin": "", "en": ""},
+                "composition": [
+                    {"herb": composition_text, "pinyin": "", "en": "", "dosage": "", "role": ""}
+                ] if composition_text else [],
+                "indications": current_yuanben_text,
+                "functions": "",
+                "pattern": "Textbook / 原文方",
+                "formula_number": number,
+                "formula_title": raw_title,
+                "yuanben_article_num": current_yuanben_article_num,
+                "songben_article_num": current_songben_article_num,
+                "comparison_book": current_comparison_book,
+                "comparison_article_num": current_songben_article_num,
+                "yuanben_text": current_yuanben_text,
+                "songben_text": current_songben_text,
+                "comparison_text": current_songben_text,
+                "source_text": composition_text,
+                "preparation_text": method_text,
+                "full_source_text": full_source_text,
+                "source": os.path.basename(textbook_path),
+            }
 
     return formulas
 
 
 TEXTBOOK_FORMULAS = load_textbook_formulas()
-FORMULAS = {**TEXTBOOK_FORMULAS, **FORMULAS}
+FORMULAS = TEXTBOOK_FORMULAS
 
 TERMINOLOGY = {
     "六经辨证": {"en": "Six Channel Pattern Identification", "pinyin": "Liu Jing Bian Zheng"},
@@ -231,7 +308,7 @@ TERMINOLOGY = {
     "方剂": {"en": "Formula", "pinyin": "Fang Ji"},
     "君臣佐使": {"en": "Monarch-Minister-Assistant-Envoy", "pinyin": "Jun Chen Zuo Shi"},
     "辨证论治": {"en": "Pattern Identification and Treatment", "pinyin": "Bian Zheng Lun Zhi"},
-    "伤寒论": {"en": "Treatise on Cold Damage", "pinyin": "Shang Han Lun"},
+    "伤寒论": {"en": "Treatise on Cold Damage and Miscellaneous Diseases", "pinyin": "Shang Han Za Bing Lun"},
     "张仲景": {"en": "Zhang Zhongjing", "pinyin": "Zhang Zhongjing"},
     "麻黄": {"en": "Ephedra", "pinyin": "Ma Huang"},
     "桂枝": {"en": "Cinnamon Twig", "pinyin": "Gui Zhi"},
@@ -279,7 +356,7 @@ PATTERN_INFO = {
     }
 }
 
-SYSTEM_PROMPT = """You are an expert in Traditional Chinese Medicine, specializing in the Shang Han Lun (Treatise on Cold Damage) by Zhang Zhongjing.
+SYSTEM_PROMPT = """You are an expert in Traditional Chinese Medicine, specializing in the Shang Han Za Bing Lun (Treatise on Cold Damage and Miscellaneous Diseases) by Zhang Zhongjing.
 
 IMPORTANT - CONVERSATION CONTEXT:
 You have access to the full conversation history. When user asks follow-up questions like:
@@ -300,10 +377,10 @@ Your role:
 - Classical formulas and their compositions
 - Pattern diagnoses (六经辨证)
 - Herb functions and dosages
-- Lesson content (原文/lecture notes) from the Shang Han Lun course — when the user asks about 原文, original text, or specific passages, reference the lesson materials provided in context
+- Lesson content (原文/lecture notes) from the Shang Han Za Bing Lun course — when the user asks about 原文, original text, or specific passages, reference the lesson materials provided in context
 
 AVAILABLE SOURCES:
-- Formula references (marked with "Shang Han Lun - ...") — classical formula data
+- Formula references (marked with "Shang Han Za Bing Lun - ...") — classical formula data
 - Terminology entries — definitions of TCM terms
 - Pattern information — channel pattern diagnostics
 - Lesson entries (marked with "Lesson: ...") — lecture notes, 原文, and summaries from Dr. Ma's SHL course

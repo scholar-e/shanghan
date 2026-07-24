@@ -26,6 +26,8 @@ src/logs/
 
 # Runtime data
 src/data/*.db
+src/data/ai_config.json
+deploy/src/data/ai_config.json
 
 # Distribution / packaging
 .Python

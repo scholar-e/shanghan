@@ -11,11 +11,14 @@ import functools
 import glob
 import logging
 import tempfile
+import re
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, after_this_request
 from logger import setup_logging, get_logger, log_request, log_error, log_user_action
 from knowledge_base import FORMULAS, TERMINOLOGY
 from formula_intake import needs_formula_followup, formula_followup_response
+from ai_config import get_active_ai_provider, load_ai_config, save_ai_config
+from pinyin_utils import pinyin_matches
 import database as db
 
 log = setup_logging("shanghan", level=logging.DEBUG)
@@ -60,6 +63,22 @@ if not secret_key:
         raise ValueError("SECRET_KEY environment variable is required for production")
 app.secret_key = secret_key
 logger.info("Flask app created")
+
+
+def expand_formula_pinyin_query(query):
+    """Add Chinese formula titles for pinyin searches like sinitang."""
+    expanded = [str(query or "")]
+    seen = {expanded[0]}
+    for formula in FORMULAS.values():
+        title = formula.get("formula_title") or formula.get("names", {}).get("zh", "")
+        names = formula.get("names", {})
+        candidates = [title, names.get("zh", ""), names.get("pinyin", "")]
+        if title and pinyin_matches(query, *candidates):
+            for value in (title, title.removesuffix("方")):
+                if value and value not in seen:
+                    expanded.append(value)
+                    seen.add(value)
+    return " ".join(expanded)
 
 # Security headers middleware
 @app.after_request
@@ -132,6 +151,15 @@ def get_language():
         return lang_cookie
     return 'zh'  # Default Chinese
 
+
+def ensure_session_id():
+    if session.get('session_id'):
+        return session['session_id']
+    user = session.get('user', 'anonymous')
+    session['session_id'] = hashlib.md5(f"{user}{datetime.now().isoformat()}".encode()).hexdigest()
+    logger.info(f"Created missing session_id for user: {user}")
+    return session['session_id']
+
 @app.route('/')
 @log_route
 def home():
@@ -163,6 +191,7 @@ def chat():
     if 'user' not in session:
         logger.warning("Unauthorized chat access attempt, redirecting to login")
         return redirect(url_for('login'))
+    ensure_session_id()
     logger.info(f"Serving chat to user: {session['user']}")
     return render_template(
         'chat.html',
@@ -191,6 +220,7 @@ def chat_en():
     if 'user' not in session:
         logger.warning("Unauthorized English chat access attempt, redirecting to login")
         return redirect(url_for('login_en'))
+    ensure_session_id()
     logger.info(f"Serving English chat to user: {session['user']}")
     response = make_response(render_template(
         'chat_en.html',
@@ -241,19 +271,20 @@ def api_chat():
     if 'user' not in session:
         logger.warning(f"Unauthorized chat attempt from IP: {request.remote_addr}")
         return jsonify({'error': 'Not authenticated'}), 401
+    session_id = ensure_session_id()
     
     data = request.json
     message = data.get('message', '')
     logger.info(f"User message: {message[:100]}...")
     
-    conversation_history = db.get_messages(session['session_id'])
+    conversation_history = db.get_messages(session_id)
     
     user_msg = {
         'role': 'user',
         'content': message,
         'timestamp': datetime.now().isoformat()
     }
-    db.append_messages(session['session_id'], session['user'], [user_msg])
+    db.append_messages(session_id, session['user'], [user_msg])
     
     logger.debug(f"Processing query: {message[:50]}... | History: {len(conversation_history)} messages")
     answer, sources, context, ai_formulas = process_query(message, conversation_history)
@@ -302,10 +333,26 @@ def api_chat():
             "formula_names": [f.get("names", {}).get("zh", "") for f in formulas_data]
         }
     
-    session_sources = [
-        {"title": s["title"]} if isinstance(s, dict) else s
-        for s in sources
-    ]
+    session_sources = []
+    for s in sources:
+        if isinstance(s, dict):
+            session_sources.append({
+                key: s.get(key)
+                for key in ("title", "type", "key", "hide_in_popup")
+                if s.get(key) is not None
+            })
+        else:
+            session_sources.append(s)
+    public_sources = []
+    for s in sources:
+        if isinstance(s, dict) and s.get("hide_in_popup"):
+            public_sources.append({
+                key: s.get(key)
+                for key in ("title", "title_zh", "title_en", "type", "key", "hide_in_popup")
+                if s.get(key) is not None
+            })
+        else:
+            public_sources.append(s)
     assistant_msg = {
         'role': 'assistant',
         'content': answer,
@@ -313,7 +360,7 @@ def api_chat():
         'context': context,
         'timestamp': datetime.now().isoformat()
     }
-    db.append_messages(session['session_id'], session['user'], [assistant_msg])
+    db.append_messages(session_id, session['user'], [assistant_msg])
     
     total_msgs = len(conversation_history) + 2
     message_id = f"msg_{total_msgs}"
@@ -321,7 +368,7 @@ def api_chat():
     logger.info(f"Chat response sent to user: {user} | Msg ID: {message_id}")
     response_data = {
         'answer': answer,
-        'sources': sources,
+        'sources': public_sources,
         'message_id': message_id
     }
     if prescription_info:
@@ -412,6 +459,18 @@ def admin_feedback():
     return jsonify({'feedbacks': feedbacks})
 
 
+@app.route('/admin/api/ai-config', methods=['GET', 'POST'])
+@log_route
+@admin_required
+def admin_ai_config():
+    if request.method == 'GET':
+        return jsonify(load_ai_config(include_secrets=False))
+    data = request.get_json(silent=True) or {}
+    config = save_ai_config(data)
+    logger.info(f"AI config updated by admin: provider={config.get('active_provider')}")
+    return jsonify(config)
+
+
 @app.route('/admin/api/database/export')
 @log_route
 @admin_required
@@ -450,7 +509,8 @@ def api_search():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
-    query = request.args.get('q', '').strip().lower()
+    query = request.args.get('q', '').strip()
+    query_lower = query.lower()
     mode = request.args.get('mode', 'text')  # 'name' or 'text'
 
     if not query:
@@ -459,6 +519,8 @@ def api_search():
     parsed_terms = db.parse_text_query(query)
     if any(term.isdigit() for term in parsed_terms):
         mode = 'text'
+    expanded_query = expand_formula_pinyin_query(query)
+    has_decimal_textbook_ref = bool(re.search(r"\b\d{1,2}\.\d{1,3}\b", query))
 
     # ── Formulas ──
     formula_results = []
@@ -466,20 +528,24 @@ def api_search():
         names = formula['names']
         matches = []
         for lang, name in names.items():
-            if query in name.lower():
+            if query_lower in str(name).lower() or pinyin_matches(query, name):
                 label = {'zh': '中文名', 'pinyin': '拼音', 'en': '英文名'}.get(lang, lang)
                 matches.append(f"名称 ({label})")
+        title = formula.get('formula_title') or ''
+        if title and pinyin_matches(query, title):
+            matches.append("名称 (拼音)")
         if mode == 'text':
             for i, herb in enumerate(formula['composition']):
                 for field in ['herb', 'pinyin', 'en']:
-                    if query in herb[field].lower():
+                    value = herb.get(field, '')
+                    if query_lower in str(value).lower() or pinyin_matches(query, value):
                         label = {'herb': '中文', 'pinyin': '拼音', 'en': '英文'}.get(field, field)
-                        matches.append(f"组成 {i+1} ({label}: {herb[field]})")
-            if query in formula['indications'].lower():
-                matches.append("主治")
-            if query in formula['functions'].lower():
+                        matches.append(f"组成 {i+1} ({label}: {value})")
+            if query_lower in formula['indications'].lower():
+                matches.append("条文")
+            if query_lower in formula['functions'].lower():
                 matches.append("功能")
-            if query in formula['pattern'].lower():
+            if query_lower in formula['pattern'].lower():
                 matches.append("证型")
         if matches:
             pattern = formula['pattern']
@@ -498,6 +564,16 @@ def api_search():
                 'indications': formula['indications'],
                 'functions': formula['functions'],
                 'pattern': pattern,
+                'formula_number': formula.get('formula_number'),
+                'formula_title': formula.get('formula_title'),
+                'yuanben_article_num': formula.get('yuanben_article_num'),
+                'songben_article_num': formula.get('songben_article_num'),
+                'comparison_book': formula.get('comparison_book', '宋本'),
+                'comparison_article_num': formula.get('comparison_article_num') or formula.get('songben_article_num'),
+                'yuanben_text': formula.get('yuanben_text', ''),
+                'songben_text': formula.get('songben_text', ''),
+                'source_text': formula.get('source_text', ''),
+                'preparation_text': formula.get('preparation_text', ''),
                 'category': category,
                 'matches': matches,
             })
@@ -507,15 +583,9 @@ def api_search():
         cat = r.pop('category')
         formula_categories.setdefault(cat, []).append(r)
 
-    # ── Terminology ──
+    # Public search is textbook-only: Fuling/Songben line alignments and
+    # formula records extracted from textbook.txt.
     term_results = []
-    for term, info in TERMINOLOGY.items():
-        if query in term.lower() or query in info.get('en', '').lower() or query in info.get('pinyin', '').lower():
-            term_results.append({
-                'term': term,
-                'pinyin': info.get('pinyin', ''),
-                'en': info.get('en', '')
-            })
 
     # ── Articles (原文) — only in text mode ──
     textbook_results = []
@@ -523,24 +593,38 @@ def api_search():
         # Fuling is the canonical textbook entry. Songben is metadata on that
         # entry, never a separate search result.
         try:
-            for r in db.search_fuling_articles(query):
+            if not has_decimal_textbook_ref:
+                for r in db.search_fuling_articles(expanded_query):
+                    textbook_results.append({
+                        'fuling_article_num': r['fuling_article_num'],
+                        'fuling_zh': r['fuling_zh'],
+                        'songben_article_num': r['song_article_num'],
+                        'songben_zh': r['song_zh'],
+                        'comparison_book': '宋本',
+                        'channel': r['channel']
+                    })
+            for r in db.search_zabing_articles(expanded_query):
                 textbook_results.append({
-                    'fuling_article_num': r['fuling_article_num'],
+                    'entry_key': r['entry_key'],
+                    'fuling_article_num': r['fuling_ref'],
                     'fuling_zh': r['fuling_zh'],
-                    'songben_article_num': r['song_article_num'],
-                    'songben_zh': r['song_zh'],
-                    'channel': r['channel']
+                    'songben_article_num': r['comparison_ref'],
+                    'songben_zh': r['comparison_zh'],
+                    'comparison_book': r.get('comparison_book') or '金匮',
+                    'chapter_title': r.get('chapter_title') or '',
+                    'channel': 'zabing'
                 })
         except Exception:
             pass
 
-    total = len(textbook_results) + len(formula_results) + len(term_results)
+    total = len(textbook_results) + len(formula_results)
     logger.info(f"Search: q='{query}' => {len(textbook_results)} Fuling textbook entries, {len(formula_results)} formulas, {len(term_results)} terms")
     return jsonify({
         'query': query,
         'formulas': formula_categories,
         'categories': formula_categories,
         'terminology': term_results,
+        'lessons': [],
         'textbook_entries': textbook_results,
         'articles': [],
         'fuling_articles': textbook_results,
@@ -627,7 +711,7 @@ def api_prescription_detail(prescription_id):
     return jsonify(data)
 
 def process_query(query, conversation_history=None):
-    """Process user query using DeepSeek API with knowledge base context."""
+    """Process user query using the configured AI provider with knowledge base context."""
     from chat_engine import ChatEngine
     
     if conversation_history is None:
@@ -639,23 +723,24 @@ def process_query(query, conversation_history=None):
         logger.info("Formula recommendation request needs intake follow-up before processing")
         return formula_followup_response(query), [], "", []
     
-    api_key = os.environ.get('DEEPSEEK_API_KEY')
+    provider, provider_config = get_active_ai_provider()
+    api_key = provider_config.get("api_key", "")
     
     if not api_key:
-        logger.warning("No DEEPSEEK_API_KEY found, using fallback responses")
+        logger.warning(f"No API key configured for active AI provider: {provider}")
         answer, sources, context = get_fallback_response(query)
         return answer, sources, context, []
     
-    logger.info(f"Using DeepSeek API for query: {query[:50]}...")
+    logger.info(f"Using {provider} API for query: {query[:50]}...")
     
     try:
         engine = ChatEngine(api_key)
         answer, sources, context, ai_formulas = engine.process_query(query, conversation_history)
-        logger.info(f"DeepSeek query successful, answer length: {len(answer)} chars, context length: {len(context)} chars, ai_formulas: {len(ai_formulas)}")
+        logger.info(f"{provider} query successful, answer length: {len(answer)} chars, context length: {len(context)} chars, ai_formulas: {len(ai_formulas)}")
         return answer, sources, context, ai_formulas
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"DeepSeek query failed: {error_msg}")
+        logger.error(f"{provider} query failed: {error_msg}")
         
         if "timeout" in error_msg.lower() or "connection" in error_msg.lower():
             logger.warning("API timeout/connection error, falling back to basic responses")
@@ -664,8 +749,8 @@ def process_query(query, conversation_history=None):
         elif "Invalid API key" in error_msg:
             logger.error(f"API key error: {error_msg}")
             return (
-                f"API key error: {error_msg}. Please check your DEEPSEEK_API_KEY.",
-                [{"title": "Configuration Error", "type": "error", "key": "", "content": f"API key error: {error_msg}. Please check your DEEPSEEK_API_KEY."}],
+                f"API key error: {error_msg}. Please check your {provider} token.",
+                [{"title": "Configuration Error", "type": "error", "key": "", "content": f"API key error: {error_msg}. Please check your {provider} token."}],
                 "",
                 []
             )
