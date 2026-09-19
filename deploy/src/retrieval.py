@@ -24,6 +24,9 @@ def parse_reference(query):
     edition = "song" if re.search(r"宋本|宋版|\bsong(?:ben|\s+(?:edition|version))?\b", text, re.I) else "fuling"
     if re.search(r"金匮|\b(?:jingui|jin\s+gui)\b", text, re.I):
         edition = "jingui"
+    yiji = re.search(r"(?<![A-Za-z0-9])YJ\s*\.?\s*(\d{1,3})(?!\d)|宜忌\s*(?:第\s*)?(\d{1,3})\s*条?", text, re.I)
+    if yiji:
+        return TextQuery("yiji", f"YJ.{int(next(v for v in yiji.groups() if v is not None))}")
     for kind, pattern in (
         ("formula", r"(?:方剂|方|formula)\s*#?\s*(\d{1,3})(?![\d.])"),
         ("lecture", r"(?:lecture|lesson|课(?:程)?|讲)\s*(\d{1,4})\b|第?\s*(\d{1,4})\s*[讲课]"),
@@ -61,7 +64,7 @@ def search_formulas(query, mode="text", limit=12):
     query_lower = query.lower().strip()
     formula_results = []
     for key, formula in FORMULAS.items():
-        if parsed.kind in ("line", "lecture", "decimal"):
+        if parsed.kind in ("line", "lecture", "decimal", "yiji"):
             continue
         names = formula['names']
         matches = []
@@ -131,9 +134,12 @@ def search_textbook(query, search_depth="shallow", limit=None):
     if parsed.kind in ("formula", "lecture") or not str(query or "").strip():
         return []
     results = []
-    if parsed.kind == "decimal":
+    yiji_scope = bool(re.search(r"宜忌|\byi\s*ji\b", query, re.I))
+    if parsed.kind in ("decimal", "yiji"):
         default_limit = 20 if db.normalize_search_depth(search_depth) == "shallow" else 100
         rows = db.get_zabing_by_reference(parsed.reference, parsed.edition, limit or default_limit)
+    elif yiji_scope and parsed.kind == "text":
+        rows = db.search_yiji_articles(query, search_depth=search_depth, limit=limit)
     else:
         # Numbers in ordinary prose (duration, dosage, etc.) are not line IDs.
         expanded = expand_formula_pinyin_query(re.sub(r"\d+", " ", query))
@@ -148,13 +154,26 @@ def search_textbook(query, search_depth="shallow", limit=None):
                 "comparison_book": "宋本", "channel": row["channel"],
             })
         rows = [] if parsed.kind == "line" else db.search_zabing_articles(expanded, search_depth=search_depth, limit=limit)
+        if parsed.kind == "line" and parsed.edition == "song":
+            rows = db.get_zabing_by_reference(parsed.reference, "song", limit or 100)
+        elif parsed.kind == "text":
+            # Guide matches compete with the other textbook records even when
+            # the larger corpus fills its keyword candidate limit first.
+            guide_rows = db.search_yiji_articles(expanded, search_depth=search_depth, limit=limit)
+            rows = list({row["entry_key"]: row for row in rows + guide_rows}.values())
     for row in rows:
         results.append({
             "entry_key": row["entry_key"], "fuling_article_num": row["fuling_ref"],
             "fuling_zh": row["fuling_zh"], "songben_article_num": row["comparison_ref"],
             "songben_zh": row["comparison_zh"], "comparison_book": row.get("comparison_book") or "金匮",
-            "chapter_title": row.get("chapter_title") or "", "channel": "zabing",
+            "chapter_title": row.get("chapter_title") or "",
+            "channel": "yiji" if row["fuling_ref"].startswith("YJ.") else "zabing",
         })
+    if parsed.kind == "text":
+        terms = db.parse_text_query(query)
+        results.sort(key=lambda row: -db._score_text_row(
+            row, query, terms, ["fuling_zh", "songben_zh", "chapter_title", "channel"],
+        ))
     return results[:limit] if limit is not None else results
 
 
@@ -171,7 +190,7 @@ def search_lectures(query, search_depth="shallow", limit=3):
         positions = [position for position in positions if position >= 0]
         start = max(0, min(positions) - 2000) if positions else 0
         return [dict(row, content=content[start:start + 8000])]
-    if parsed.kind in ("line", "decimal", "formula"):
+    if parsed.kind in ("line", "decimal", "formula", "yiji"):
         return []
     return db.search_lessons(expand_formula_pinyin_query(query), search_depth=search_depth, limit=limit)
 
@@ -183,11 +202,16 @@ def textbook_source(record):
     label_en = "Jingui" if book == "金匮" else "Songben"
     zh = f"涪陵古本第 {ref} 条" + (f"（{book}第 {comparison} 条）" if comparison else "")
     en = f"Fulingben line {ref}" + (f" ({label_en} line {comparison})" if comparison else "")
+    if record.get("channel") == "yiji":
+        zh = f"涪陵古本宜忌 {ref}" + (f"（{book}第 {comparison} 条）" if comparison else "")
+        en = f"Fulingben Yiji {ref}" + (f" ({label_en} line {comparison})" if comparison else "")
     text = f"【{zh}】{record['fuling_zh']}"
+    if record.get("chapter_title"):
+        text = f"{record['chapter_title']}\n{text}"
     if comparison and record.get("songben_zh"):
         text += f"\n【{book} {comparison}】{record['songben_zh']}"
     return {"title": zh, "title_zh": zh, "title_en": en,
-            "type": "zabing_article" if record.get("entry_key") else "fuling_article",
+            "type": "yiji_article" if record.get("channel") == "yiji" else "zabing_article" if record.get("entry_key") else "fuling_article",
             "key": record.get("entry_key") or f"fuling_{ref}"}, text
 
 

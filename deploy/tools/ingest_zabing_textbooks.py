@@ -2,6 +2,7 @@
 """Extract Zabing textbook .docx files into normalized text and SQLite rows."""
 
 import argparse
+import logging
 import os
 import re
 import sys
@@ -18,6 +19,7 @@ DEFAULT_DOCX = [
     os.path.join(ROOT_DIR, "textbook3rdpart_Reedited_Zabing_toCh40End.docx"),
 ]
 OUT_TXT = os.path.join(ROOT_DIR, "textbook_zabing.txt")
+logger = logging.getLogger(__name__)
 
 
 def _paragraphs(path):
@@ -160,7 +162,12 @@ def main():
     parser.add_argument("--txt", action="store_true", help="Write normalized textbook_zabing.txt")
     parser.add_argument("--db", action="store_true", help="Load entries into SQLite")
     parser.add_argument("--clear", action="store_true", help="Clear Zabing rows before DB load")
+    parser.add_argument("--database", help="Override the SQLite destination")
     args = parser.parse_args()
+    log_dir = os.path.join(ROOT_DIR, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(filename)s:%(lineno)d %(levelname)s %(message)s",
+                        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(os.path.join(log_dir, "ingest_zabing.log"))])
 
     entries = []
     formulas = []
@@ -172,17 +179,23 @@ def main():
         entries.extend(parsed_entries)
         formulas.extend(parsed_formulas)
         items.extend(parsed_items)
-        print(f"{os.path.basename(path)}: {len(parsed_entries)} entries, {len(parsed_formulas)} formulas")
+        logger.info("%s: %d entries, %d formulas", os.path.basename(path), len(parsed_entries), len(parsed_formulas))
 
     if args.txt or not args.db:
         write_normalized_text(items)
-        print(f"TXT: {OUT_TXT}")
+        logger.info("TXT: %s", OUT_TXT)
 
     if args.db:
         import database as db
+        if args.database:
+            db.close_db()
+            db.DB_PATH = os.path.abspath(args.database)
         db.init_db()
         if args.clear:
-            db.clear_zabing_articles()
+            # Other supplementary reference namespaces (e.g. YJ) share the
+            # table. A Zabing reimport must preserve those records.
+            with db.get_connection() as connection:
+                connection.execute("DELETE FROM zabing_articles WHERE entry_key GLOB 'zabing_*'")
         for entry in entries:
             db.save_zabing_article(
                 entry["entry_key"],
@@ -194,9 +207,9 @@ def main():
                 entry["chapter_title"],
                 entry["source_path"],
             )
-        print(f"DB: {db.zabing_article_count()} Zabing entries loaded into {db.DB_PATH}")
+        logger.info("DB: %d supplementary textbook entries in %s", db.zabing_article_count(), db.DB_PATH)
 
-    print(f"Total: {len(entries)} entries, {len(formulas)} formulas")
+    logger.info("Total: %d entries, %d formulas", len(entries), len(formulas))
 
 
 if __name__ == "__main__":

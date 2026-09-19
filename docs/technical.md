@@ -40,6 +40,37 @@ The `deploy/src` copies of these modules and templates must be synchronized
 when preparing a deployment. Updating those local copies does not deploy the
 running service.
 
+### Fourth textbook part: Yiji guide
+
+`textbook4thpart_ReEdited_SHLYiJiGuide.docx` contains 113 entries in 15 sections
+of 辨伤寒宜忌脉症篇第十五. Its identifiers run from `YJ.1` through `YJ.114`,
+with `YJ.31` absent from the supplied document. The importer preserves that gap
+and the five explicit Songben alignments. The guide mentions existing formulas
+but contains no additional formula-definition blocks.
+
+```bash
+.venv/bin/python tools/ingest_yiji_textbook.py --txt --db
+.venv/bin/python tools/ingest_yiji_textbook.py --db --database deploy/src/data/shanghan.db
+```
+
+With no flags, the importer validates and reports the source without writing
+text or database records. `--txt` generates `textbook_yiji.txt`; `--db` upserts
+only the guide entries. They share the supplementary `zabing_articles` table
+with parts 2–3, using separate `yiji_YJ.N` keys. Search and citations identify
+them as `yiji` / `yiji_article`; they are never resolved as ordinary integer
+article numbers. Supported queries include `YJ.2`, `宜忌第2条`, and
+`宜忌 咽喉干燥`. Reimporting Zabing with `--clear` preserves the guide rows.
+
+`prod_deploy.sh` packages the source DOCX files for parts 2–4 and both derived
+text files. After installing dependencies, it upserts the supplementary corpus
+into the installed and mirror databases, even on a code-only deployment.
+Conversations, feedback, prescriptions, and lectures are preserved. Database
+WAL/SHM runtime files are excluded from release archives and Git.
+
+Regression coverage: `src/tests/test_yiji_ingestion.py` checks the document's
+numbering and alignments, repeat imports, existing-data preservation, exact and
+keyword retrieval, public search, and AI citation identity.
+
 ---
 
 ## v0.5: Local Development Version

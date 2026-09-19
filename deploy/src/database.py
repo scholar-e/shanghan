@@ -712,6 +712,20 @@ def get_zabing_by_reference(reference, edition="fuling", limit=100):
 
 
 @with_db
+def search_yiji_articles(query, search_depth="shallow", limit=None):
+    """Rank the small, separately numbered Yiji guide without early-row bias."""
+    _, limits, requested_limit = _search_limits(search_depth, limit)
+    query = re.sub(r"宜忌|\byi\s*ji\b|\bguide\b", " ", query, flags=re.I).strip()
+    terms = [term for term in parse_text_query(query) if not term.isdigit()]
+    fields = ["fuling_zh", "comparison_zh", "chapter_title", "fuling_ref"]
+    rows = get_connection().execute("SELECT * FROM zabing_articles WHERE fuling_ref LIKE 'YJ.%'").fetchall()
+    scored = [(_score_text_row(dict(row), query, terms, fields), dict(row)) for row in rows]
+    scored = [(score, row) for score, row in scored if score > 0 or not query]
+    scored.sort(key=lambda item: (-item[0], int(item[1]["fuling_ref"].split(".")[1])))
+    return [row for _, row in scored[:requested_limit or limits["zabing"]]]
+
+
+@with_db
 def search_zabing_articles(query, search_depth="shallow", limit=None):
     conn = get_connection()
     depth, limits, requested_limit = _search_limits(search_depth, limit)

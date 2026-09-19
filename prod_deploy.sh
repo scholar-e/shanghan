@@ -120,6 +120,8 @@ TAR_EXCLUDES=(
     --exclude='src/data/feedback'
     --exclude='src/data/lessons'
     --exclude='src/data/prescriptions'
+    --exclude='*.db-wal'
+    --exclude='*.db-shm'
 )
 
 if [[ "$WITH_DB" != true ]]; then
@@ -127,7 +129,10 @@ if [[ "$WITH_DB" != true ]]; then
 fi
 
 tar -czf "$ARCHIVE" "${TAR_EXCLUDES[@]}" \
-    server.py src tools textbook.txt .env.example deploy.sh
+    server.py src tools textbook.txt textbook_zabing.txt textbook_yiji.txt \
+    textbook2ndpart_Reedited_Zabing_toCh25.docx \
+    textbook3rdpart_Reedited_Zabing_toCh40End.docx \
+    textbook4thpart_ReEdited_SHLYiJiGuide.docx .env.example deploy.sh
 
 echo "Archive: $ARCHIVE"
 echo "Remote:  $REMOTE"
@@ -176,14 +181,18 @@ fi
 
 echo "Copying application files ..."
 cp -a "$EXTRACT_DIR/server.py" "$INSTALL_DIR/server.py"
-cp -a "$EXTRACT_DIR/textbook.txt" "$INSTALL_DIR/textbook.txt"
+for textbook in "$EXTRACT_DIR"/textbook*.txt "$EXTRACT_DIR"/textbook*.docx; do
+    cp -a "$textbook" "$INSTALL_DIR/"
+done
 cp -a "$EXTRACT_DIR/deploy.sh" "$INSTALL_DIR/deploy.sh"
 cp -a "$EXTRACT_DIR/src/." "$INSTALL_DIR/src/"
 cp -a "$EXTRACT_DIR/tools" "$INSTALL_DIR/"
 
 echo "Updating deploy mirror ..."
 cp -a "$EXTRACT_DIR/server.py" "$MIRROR_DIR/server.py"
-cp -a "$EXTRACT_DIR/textbook.txt" "$MIRROR_DIR/textbook.txt"
+for textbook in "$EXTRACT_DIR"/textbook*.txt "$EXTRACT_DIR"/textbook*.docx; do
+    cp -a "$textbook" "$MIRROR_DIR/"
+done
 cp -a "$EXTRACT_DIR/deploy.sh" "$MIRROR_DIR/deploy.sh"
 cp -a "$EXTRACT_DIR/src/." "$MIRROR_DIR/src/"
 cp -a "$EXTRACT_DIR/tools" "$MIRROR_DIR/"
@@ -212,6 +221,14 @@ if [[ "$SKIP_DEPS" != true ]]; then
     "$INSTALL_DIR/.venv/bin/pip" install -r "$INSTALL_DIR/src/requirements.txt" -q
     "$INSTALL_DIR/.venv/bin/pip" install gunicorn -q
 fi
+
+echo "Updating supplementary textbook indexes without replacing user data ..."
+for destination in "$INSTALL_DIR" "$MIRROR_DIR"; do
+    "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/ingest_zabing_textbooks.py" \
+        --db --database "$destination/src/data/shanghan.db"
+    "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/ingest_yiji_textbook.py" \
+        --db --database "$destination/src/data/shanghan.db"
+done
 
 echo "Writing systemd service ..."
 cat <<UNIT | sudo tee "/etc/systemd/system/$SERVICE.service" >/dev/null

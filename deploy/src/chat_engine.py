@@ -72,7 +72,7 @@ SEARCH_TOOLS = [
         "type": "function",
         "function": {
             "name": "search_articles",
-            "description": "Search the complete Fuling textbook, including Zabing chapter.line references (26.9), keywords, and explicit Songben or Jingui alignments.",
+            "description": "Search the complete Fuling textbook, including Zabing chapter.line references (26.9), Yiji guide references (YJ.2 / 宜忌第2条), keywords, and explicit Songben or Jingui alignments.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -633,7 +633,7 @@ TOOLS AVAILABLE:
 You have access to the following tools to look up information on demand:
 - search_formulas(query) — Search the classical formula database
 - search_terminology(query) — Look up TCM term definitions
-- search_articles(query) — Search all Fuling textbook records, including Zabing chapter.line references such as 26.9 and explicit Songben/Jingui alignments
+- search_articles(query) — Search all Fuling textbook records, including Zabing chapter.line references such as 26.9, Yiji guide references YJ.1–YJ.114 (宜忌), and explicit Songben/Jingui alignments. YJ numbers belong to a separate guide; never interpret them as ordinary article numbers.
 - get_article(article_num) — Get a specific Song edition article by its Songben number; use only for explicit 宋本/Songben requests
 - get_fuling_article(article_num) — Get a specific Fuling Ancient Edition article (涪陵古本) by its number (default for bare chapter/article/line requests, e.g., 10)
 - search_fuling_articles(query) — Alias for textbook search
