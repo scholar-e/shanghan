@@ -16,9 +16,10 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, after_this_request
 from logger import setup_logging, get_logger, log_request, log_error, log_user_action
 from knowledge_base import FORMULAS, TERMINOLOGY
-from formula_intake import needs_formula_followup, formula_followup_response
+from formula_intake import needs_formula_followup, formula_followup_response, should_save_prescription
 from ai_config import get_active_ai_provider, load_ai_config, save_ai_config
 from pinyin_utils import pinyin_matches
+from retrieval import expand_formula_pinyin_query, parse_reference, search_formulas, search_textbook
 import database as db
 
 log = setup_logging("shanghan", level=logging.DEBUG)
@@ -64,21 +65,6 @@ if not secret_key:
 app.secret_key = secret_key
 logger.info("Flask app created")
 
-
-def expand_formula_pinyin_query(query):
-    """Add Chinese formula titles for pinyin searches like sinitang."""
-    expanded = [str(query or "")]
-    seen = {expanded[0]}
-    for formula in FORMULAS.values():
-        title = formula.get("formula_title") or formula.get("names", {}).get("zh", "")
-        names = formula.get("names", {})
-        candidates = [title, names.get("zh", ""), names.get("pinyin", "")]
-        if title and pinyin_matches(query, *candidates):
-            for value in (title, title.removesuffix("方")):
-                if value and value not in seen:
-                    expanded.append(value)
-                    seen.add(value)
-    return " ".join(expanded)
 
 # Security headers middleware
 @app.after_request
@@ -275,6 +261,7 @@ def api_chat():
     
     data = request.json
     message = data.get('message', '')
+    search_depth = db.normalize_search_depth(data.get('search_depth', 'shallow'))
     logger.info(f"User message: {message[:100]}...")
     
     conversation_history = db.get_messages(session_id)
@@ -287,7 +274,10 @@ def api_chat():
     db.append_messages(session_id, session['user'], [user_msg])
     
     logger.debug(f"Processing query: {message[:50]}... | History: {len(conversation_history)} messages")
-    answer, sources, context, ai_formulas = process_query(message, conversation_history)
+    if search_depth == "deep":
+        answer, sources, context, ai_formulas = process_query(message, conversation_history, search_depth=search_depth)
+    else:
+        answer, sources, context, ai_formulas = process_query(message, conversation_history)
     logger.debug(f"Query processed, answer length: {len(answer)} chars, sources: {len(sources)}, ai_formulas: {len(ai_formulas)}, context length: {len(context)} chars")
     
     # Auto-save prescription if response contains formula data
@@ -317,7 +307,7 @@ def api_chat():
             formulas_data.append(normalized)
             known_zh.add(f_zh)
     
-    if formulas_data:
+    if formulas_data and should_save_prescription(message, conversation_history, ai_formulas):
         prescription_id = uuid.uuid4().hex[:12]
         db.save_prescription(
             prescription_id, user, datetime.now().isoformat(),
@@ -338,7 +328,7 @@ def api_chat():
         if isinstance(s, dict):
             session_sources.append({
                 key: s.get(key)
-                for key in ("title", "type", "key", "hide_in_popup")
+                for key in ("title", "type", "key", "hide_in_popup", "source_id", "citation_id")
                 if s.get(key) is not None
             })
         else:
@@ -348,7 +338,7 @@ def api_chat():
         if isinstance(s, dict) and s.get("hide_in_popup"):
             public_sources.append({
                 key: s.get(key)
-                for key in ("title", "title_zh", "title_en", "type", "key", "hide_in_popup")
+                for key in ("title", "title_zh", "title_en", "type", "key", "hide_in_popup", "source_id", "citation_id")
                 if s.get(key) is not None
             })
         else:
@@ -509,75 +499,17 @@ def api_search():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
 
+    started_at = time.perf_counter()
     query = request.args.get('q', '').strip()
-    query_lower = query.lower()
     mode = request.args.get('mode', 'text')  # 'name' or 'text'
+    search_depth = db.normalize_search_depth(request.args.get('depth', 'shallow'))
 
     if not query:
-        return jsonify({'query': query, 'formulas': {}, 'lessons': [], 'articles': [], 'terminology': [], 'total': 0})
+        return jsonify({'query': query, 'search_depth': search_depth, 'formulas': {}, 'lessons': [], 'articles': [], 'terminology': [], 'total': 0})
 
-    parsed_terms = db.parse_text_query(query)
-    if any(term.isdigit() for term in parsed_terms):
-        mode = 'text'
-    expanded_query = expand_formula_pinyin_query(query)
-    has_decimal_textbook_ref = bool(re.search(r"\b\d{1,2}\.\d{1,3}\b", query))
-
-    # ── Formulas ──
-    formula_results = []
-    for key, formula in FORMULAS.items():
-        names = formula['names']
-        matches = []
-        for lang, name in names.items():
-            if query_lower in str(name).lower() or pinyin_matches(query, name):
-                label = {'zh': '中文名', 'pinyin': '拼音', 'en': '英文名'}.get(lang, lang)
-                matches.append(f"名称 ({label})")
-        title = formula.get('formula_title') or ''
-        if title and pinyin_matches(query, title):
-            matches.append("名称 (拼音)")
-        if mode == 'text':
-            for i, herb in enumerate(formula['composition']):
-                for field in ['herb', 'pinyin', 'en']:
-                    value = herb.get(field, '')
-                    if query_lower in str(value).lower() or pinyin_matches(query, value):
-                        label = {'herb': '中文', 'pinyin': '拼音', 'en': '英文'}.get(field, field)
-                        matches.append(f"组成 {i+1} ({label}: {value})")
-            if query_lower in formula['indications'].lower():
-                matches.append("条文")
-            if query_lower in formula['functions'].lower():
-                matches.append("功能")
-            if query_lower in formula['pattern'].lower():
-                matches.append("证型")
-        if matches:
-            pattern = formula['pattern']
-            if ' with ' in pattern:
-                category = pattern.split(' with ')[0].strip()
-            elif ' - ' in pattern:
-                category = pattern.split(' - ')[0].strip()
-            elif '–' in pattern:
-                category = pattern.split('–')[0].strip()
-            else:
-                category = pattern.strip()
-            formula_results.append({
-                'key': key,
-                'names': names,
-                'composition': formula['composition'],
-                'indications': formula['indications'],
-                'functions': formula['functions'],
-                'pattern': pattern,
-                'formula_number': formula.get('formula_number'),
-                'formula_title': formula.get('formula_title'),
-                'yuanben_article_num': formula.get('yuanben_article_num'),
-                'songben_article_num': formula.get('songben_article_num'),
-                'comparison_book': formula.get('comparison_book', '宋本'),
-                'comparison_article_num': formula.get('comparison_article_num') or formula.get('songben_article_num'),
-                'yuanben_text': formula.get('yuanben_text', ''),
-                'songben_text': formula.get('songben_text', ''),
-                'source_text': formula.get('source_text', ''),
-                'preparation_text': formula.get('preparation_text', ''),
-                'category': category,
-                'matches': matches,
-            })
-
+    if parse_reference(query).kind != "text":
+        mode = "text"
+    formula_results = search_formulas(query, mode=mode, limit=12 if search_depth == "shallow" else 50)
     formula_categories = {}
     for r in formula_results:
         cat = r.pop('category')
@@ -587,40 +519,13 @@ def api_search():
     # formula records extracted from textbook.txt.
     term_results = []
 
-    # ── Articles (原文) — only in text mode ──
-    textbook_results = []
-    if mode == 'text':
-        # Fuling is the canonical textbook entry. Songben is metadata on that
-        # entry, never a separate search result.
-        try:
-            if not has_decimal_textbook_ref:
-                for r in db.search_fuling_articles(expanded_query):
-                    textbook_results.append({
-                        'fuling_article_num': r['fuling_article_num'],
-                        'fuling_zh': r['fuling_zh'],
-                        'songben_article_num': r['song_article_num'],
-                        'songben_zh': r['song_zh'],
-                        'comparison_book': '宋本',
-                        'channel': r['channel']
-                    })
-            for r in db.search_zabing_articles(expanded_query):
-                textbook_results.append({
-                    'entry_key': r['entry_key'],
-                    'fuling_article_num': r['fuling_ref'],
-                    'fuling_zh': r['fuling_zh'],
-                    'songben_article_num': r['comparison_ref'],
-                    'songben_zh': r['comparison_zh'],
-                    'comparison_book': r.get('comparison_book') or '金匮',
-                    'chapter_title': r.get('chapter_title') or '',
-                    'channel': 'zabing'
-                })
-        except Exception:
-            pass
+    textbook_results = search_textbook(query, search_depth=search_depth) if mode == "text" else []
 
     total = len(textbook_results) + len(formula_results)
     logger.info(f"Search: q='{query}' => {len(textbook_results)} Fuling textbook entries, {len(formula_results)} formulas, {len(term_results)} terms")
     return jsonify({
         'query': query,
+        'search_depth': search_depth,
         'formulas': formula_categories,
         'categories': formula_categories,
         'terminology': term_results,
@@ -629,6 +534,7 @@ def api_search():
         'articles': [],
         'fuling_articles': textbook_results,
         'total': total,
+        'elapsed_ms': round((time.perf_counter() - started_at) * 1000, 2),
     })
 
 
@@ -710,7 +616,7 @@ def api_prescription_detail(prescription_id):
     logger.info(f"Prescription viewed: {prescription_id} by {user}")
     return jsonify(data)
 
-def process_query(query, conversation_history=None):
+def process_query(query, conversation_history=None, search_depth="shallow"):
     """Process user query using the configured AI provider with knowledge base context."""
     from chat_engine import ChatEngine
     
@@ -735,7 +641,7 @@ def process_query(query, conversation_history=None):
     
     try:
         engine = ChatEngine(api_key)
-        answer, sources, context, ai_formulas = engine.process_query(query, conversation_history)
+        answer, sources, context, ai_formulas = engine.process_query(query, conversation_history, search_depth=search_depth)
         logger.info(f"{provider} query successful, answer length: {len(answer)} chars, context length: {len(context)} chars, ai_formulas: {len(ai_formulas)}")
         return answer, sources, context, ai_formulas
     except Exception as e:

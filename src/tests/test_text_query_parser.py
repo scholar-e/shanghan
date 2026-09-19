@@ -135,6 +135,32 @@ def test_api_chat_shows_lecture_citation_without_popup_content():
     }]
 
 
+def test_educational_chat_does_not_auto_save_mentioned_formula():
+    import importlib
+    from chat_engine import extract_formulas_from_text
+
+    server = importlib.import_module("src.server")
+    client = server.app.test_client()
+    with client.session_transaction() as sess:
+        sess["user"] = "prof@tcm.org"
+        sess["session_id"] = "test-no-educational-prescription"
+
+    answer = "全象思辨的例子可涉及芍药甘草附子汤证，但这不是为提问者开方。"
+    formulas = extract_formulas_from_text(answer)
+    before = len(server.db.get_prescriptions_for_user("prof@tcm.org"))
+    original = server.process_query
+    server.process_query = lambda message, history: (answer, [], "lecture context", formulas)
+    try:
+        response = client.post("/api/chat", json={"message": "什么是全象思辨？请举例说明。"})
+    finally:
+        server.process_query = original
+
+    after = len(server.db.get_prescriptions_for_user("prof@tcm.org"))
+    assert response.status_code == 200
+    assert response.get_json().get("prescription") is None
+    assert after == before
+
+
 def test_api_search_numeric_query_searches_original_text_even_in_name_mode():
     import server
 
@@ -177,6 +203,33 @@ def test_zabing_article_search_uses_chapter_line_reference():
     assert rows[0]["comparison_book"] == "金匮"
     assert rows[0]["comparison_ref"] == "10.9"
     assert "厚朴七物汤" in rows[0]["fuling_zh"]
+
+
+def test_search_depth_is_normalized_and_bounded():
+    assert db.normalize_search_depth("deep") == "deep"
+    assert db.normalize_search_depth("DEEP") == "deep"
+    assert db.normalize_search_depth("anything-else") == "shallow"
+
+    shallow = db.search_fuling_articles("太阳", search_depth="shallow")
+    deep = db.search_fuling_articles("太阳", search_depth="deep")
+    assert len(shallow) <= db.SEARCH_DEPTH_LIMITS["shallow"]["articles"]
+    assert len(deep) >= len(shallow)
+
+
+def test_api_search_supports_shallow_and_deep_modes():
+    import server
+
+    client = server.app.test_client()
+    with client.session_transaction() as sess:
+        sess["user"] = "prof@tcm.org"
+
+    shallow = client.get("/api/search?q=太阳&depth=shallow").get_json()
+    deep = client.get("/api/search?q=太阳&depth=deep").get_json()
+
+    assert shallow["search_depth"] == "shallow"
+    assert deep["search_depth"] == "deep"
+    assert "elapsed_ms" in shallow
+    assert deep["total"] >= shallow["total"]
 
 
 def test_database_export_is_admin_only_and_returns_valid_sqlite():

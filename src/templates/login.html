@@ -167,10 +167,44 @@
                 padding: 0;
             }
         }
+
+        /* Editorial authentication layout */
+        body { padding: 0; color: #17312b; background: #f5f1e8; font-family: "Noto Sans SC", "PingFang SC", var(--font-sans); }
+        body::before { content: "傷寒"; position: fixed; right: -2rem; bottom: -5rem; color: rgba(35,95,80,.035); font: 700 17rem/1 serif; writing-mode: vertical-rl; pointer-events: none; }
+        .login-wrapper { max-width: 1100px; min-height: 680px; display: grid; grid-template-columns: .95fr 1.05fr; background: #fffdf8; border: 1px solid rgba(23,49,43,.14); box-shadow: 0 35px 90px rgba(27,52,44,.13); }
+        .login-context { position: relative; padding: clamp(3rem,6vw,5.5rem); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; color: #e4ece8; background: #17463b; }
+        .login-context::after { content: "經"; position: absolute; right: -1.2rem; bottom: -2.2rem; color: rgba(255,255,255,.045); font: 700 13rem/1 serif; }
+        .context-kicker { color: #d69a8d; font-size: .72rem; font-weight: 800; letter-spacing: .18em; }
+        .login-context h1 { margin-top: 1.3rem; color: #fff; font: 500 clamp(2.5rem,5vw,4.4rem)/1.15 Georgia,"Noto Serif SC",serif; letter-spacing: -.04em; }
+        .login-context > div > p { max-width: 380px; color: #b6c8c1; line-height: 1.9; }
+        .context-source { position: relative; z-index: 1; padding-top: 1.3rem; border-top: 1px solid rgba(255,255,255,.18); color: #9eb3ab; font-size: .75rem; line-height: 1.7; }
+        .context-source strong { display: block; margin-bottom: .35rem; color: #e8efec; font: 500 1rem Georgia,"Noto Serif SC",serif; }
+        .login-panel { padding: clamp(2.2rem,6vw,5rem); display: flex; flex-direction: column; justify-content: center; }
+        .login-header { margin-bottom: 1.5rem; text-align: left; }
+        .login-brand { justify-content: flex-start; color: #17312b; font-family: Georgia,"Noto Serif SC",serif; }
+        .login-brand i { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; color: #fff; background: #a94735; border-radius: 3px; }
+        .login-subtitle { color: #728079; font-size: .9rem; }
+        .login-language { align-self: flex-end; margin: -4rem 0 2rem; font-size: .78rem; }
+        .login-language a { color: #64736c; }
+        .login-card { padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+        .login-card h2 { margin-bottom: 2rem; color: #17312b; text-align: left; font: 500 2rem Georgia,"Noto Serif SC",serif; }
+        .form-label { color: #455950; font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+        .form-label i { display: none; }
+        .form-input { min-height: 3.4rem; color: #17312b; background: #fff; border-color: #ccd2cd; border-radius: 2px; }
+        .form-input:focus { border-color: #235f50; box-shadow: 0 0 0 3px rgba(35,95,80,.11); }
+        .btn-login { min-height: 3.5rem; background: #235f50; border-radius: 2px; }
+        .btn-login:hover { background: #17463b; }
+        .login-footer { display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .login-footer a { color: #235f50; }
+        .login-footer p { margin: 0; }
+        @media (max-width: 760px) { .login-wrapper { min-height: 100vh; grid-template-columns: 1fr; border: 0; } .login-context { min-height: 260px; padding: 2rem; } .login-context h1 { font-size: 2.5rem; } .context-source { display: none; } .login-panel { padding: 2rem; } }
+        @media (max-width: 480px) { .login-language { margin-top: -3.8rem; } .login-footer { align-items: flex-start; flex-direction: column; gap: .8rem; } }
     </style>
 </head>
 <body>
     <div class="login-wrapper">
+        <section class="login-context" aria-label="系统简介"><div><p class="context-kicker">经典为本 · 证据为据</p><h1>从原文出发，<br>让思路有据可循。</h1><p>登录后检索经典条文、辨析证候，并在原文语境中研究方剂。</p></div><p class="context-source"><strong>《伤寒杂病论》（涪陵古本）</strong>马寿椿主讲 · 王行记录 · 周梅校对 · 刘佳玲勘误</p></section>
+        <div class="login-panel">
         <div class="login-header">
             <div class="login-brand">
                 <i class="fas fa-leaf"></i>
@@ -178,7 +212,7 @@
             </div>
             <p class="login-subtitle">中医师安全认证</p>
         </div>
-        <div style="text-align: right; margin-bottom: 1rem;">
+        <div class="login-language">
             <a href="/login" style="margin-right: 0.5rem; color: var(--gray-700); text-decoration: none;">中文</a>
             <span style="color: var(--gray-400);">|</span>
             <a href="/en/login" style="margin-left: 0.5rem; color: var(--gray-700); text-decoration: none;">English</a>
@@ -228,13 +262,14 @@
                 </div>
             </form>
             
-            <div class="login-footer">
+            <div class="login-footer back-link">
                 <a href="/">
                     <i class="fas fa-arrow-left"></i>
                     返回首页
                 </a>
                 <p class="mt-2">需要帮助？联系管理员。</p>
             </div>
+        </div>
         </div>
     </div>
 
@@ -260,7 +295,7 @@
             const errorText = document.getElementById('error-text');
             
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Signing in...</span>';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>正在登录...</span>';
             errorEl.style.display = 'none';
             
             try {
@@ -274,21 +309,21 @@
                 
                 if (data.success) {
                     // Add success feedback
-                    submitBtn.innerHTML = '<i class="fas fa-check"></i><span>Success! Redirecting...</span>';
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i><span>登录成功，正在跳转...</span>';
                     setTimeout(() => {
                         window.location.href = data.redirect;
                     }, 500);
                 } else {
-                    errorText.textContent = data.error || 'Invalid email or password. Please try again.';
+                    errorText.textContent = data.error || '邮箱或密码无效，请重试。';
                     errorEl.style.display = 'flex';
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Sign In</span>';
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>登录</span>';
                 }
             } catch (err) {
-                errorText.textContent = 'Network error. Please check your connection and try again.';
+                errorText.textContent = '网络错误，请检查连接后重试。';
                 errorEl.style.display = 'flex';
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Sign In</span>';
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>登录</span>';
             }
         });
         

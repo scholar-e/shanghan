@@ -1,6 +1,6 @@
 # ShanghanTCM Evidence
 
-AI-powered Traditional Chinese Medicine assistant based on the Shang Han Lun (伤寒论 - Treatise on Cold Damage).
+AI-powered Traditional Chinese Medicine assistant based on the Shang Han Za Bing Lun (伤寒杂病论 - Treatise on Cold Damage and Miscellaneous Diseases).
 
 ## Overview
 

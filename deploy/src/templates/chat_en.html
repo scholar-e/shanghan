@@ -1003,6 +1003,14 @@
             color: var(--primary);
             font-weight: 600;
         }
+        .search-depth-select {
+            padding: 0.45rem 0.7rem;
+            color: var(--gray-700);
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+        }
         .toggle-switch {
             position: relative;
             width: 48px;
@@ -1118,23 +1126,65 @@
             padding: var(--space-xl);
             color: var(--gray-600);
         }
+        /* Editorial research workspace */
+        :root { --primary: #235f50; --primary-dark: #17463b; --primary-light: #e2eee9; --chat-bg: #f5f1e8; --user-message-bg: #235f50; --bot-message-bg: #fffdf8; }
+        body { color: #17312b; background: var(--chat-bg); }
+        .chat-header { min-height: 68px; padding: .75rem 1.5rem; background: rgba(245,241,232,.96); border-color: rgba(23,49,43,.14); box-shadow: none; backdrop-filter: blur(12px); }
+        .header-brand { color: #17312b; font-family: Georgia,serif; }
+        .header-brand .brand-mark { width: 2.3rem; height: 2.3rem; font-size: 1rem; }
+        .header-language { display: flex; align-items: center; gap: .35rem; margin-left: .7rem; padding: .25rem; border: 1px solid rgba(23,49,43,.14); border-radius: 999px; font-size: .72rem; }
+        .header-language a { padding: .25rem .45rem; color: #627069; }
+        .header-language a[aria-current="page"] { color: #17312b; background: #fff; border-radius: 999px; }
+        .user-profile { color: #56675f; background: rgba(35,95,80,.08); border-radius: 3px; }
+        .admin-badge, .logout-btn { border-radius: 3px; }
+        .admin-badge { background: #235f50; }
+        .tabs-bar { background: #fffdf8; border-color: rgba(23,49,43,.12); }
+        .tabs { gap: 1.75rem; }
+        .tab-btn { padding: 1rem .15rem .8rem; color: #78847e; border-radius: 0; border-bottom: 2px solid transparent; }
+        .tab-btn:hover { color: #235f50; background: transparent; }
+        .tab-btn.active { color: #17312b; background: transparent; border-bottom-color: #a94735; }
+        .messages-container { padding: 2rem max(1.25rem, calc((100% - 920px)/2)); background: radial-gradient(circle at 90% 10%, rgba(169,71,53,.04), transparent 24%); }
+        .disclaimer { color: #756e62; background: #eee7d9; border: 0; border-left: 3px solid #a94735; border-radius: 0; }
+        .lang-toggle { color: #68766f; }
+        .lang-toggle select { border-color: #cbd2cd; border-radius: 2px; }
+        .welcome-message { max-width: 760px; margin: auto; padding: 3rem 1rem; text-align: left; }
+        .welcome-message::before { content: "CLASSICAL INQUIRY"; display: block; margin-bottom: 1.2rem; color: #a94735; font-size: .7rem; font-weight: 800; letter-spacing: .2em; }
+        .welcome-message h2 { font: 500 clamp(2rem,4vw,3.25rem)/1.2 Georgia,serif; letter-spacing: -.035em; }
+        .welcome-message p { max-width: 630px; color: #65736c; }
+        .welcome-prompts { display: grid; grid-template-columns: repeat(3,1fr); gap: .65rem; margin-top: 1.7rem; }
+        .welcome-prompts button { padding: 1rem; color: #43564d; background: rgba(255,253,248,.7); border: 1px solid rgba(23,49,43,.14); text-align: left; cursor: pointer; transition: .2s ease; }
+        .welcome-prompts button:hover { color: #235f50; background: #fff; border-color: #235f50; transform: translateY(-2px); }
+        .message { max-width: min(86%, 780px); }
+        .message-avatar { width: 34px; height: 34px; background: #235f50; border-radius: 3px; }
+        .message-content { padding: 1rem 1.25rem; border-radius: 3px; box-shadow: none; }
+        .message-bot .message-content { border-color: rgba(23,49,43,.13); }
+        .message-user .message-content { border-radius: 3px; }
+        .input-container { padding: 1rem max(1.25rem, calc((100% - 920px)/2)) 1.25rem; background: linear-gradient(transparent, #f5f1e8 24%); border: 0; }
+        .input-wrapper { padding: .45rem; background: #fffdf8; border: 1px solid rgba(23,49,43,.2); border-radius: 3px; box-shadow: 0 12px 35px rgba(23,49,43,.09); }
+        .input-wrapper:focus-within { border-color: #235f50; box-shadow: 0 0 0 3px rgba(35,95,80,.08), 0 12px 35px rgba(23,49,43,.09); }
+        .input-wrapper textarea { color: #17312b; }
+        .send-btn, .search-btn { background: #235f50; border-radius: 2px; }
+        .tab-page { max-width: 1120px; }
+        .search-input, .search-depth-select { border-radius: 2px; }
+        .search-results, .formula-card, .search-formula-card { border-radius: 2px; box-shadow: none; }
+        .formula-card:hover, .search-formula-card:hover { border-color: rgba(35,95,80,.45); }
+        @media (max-width: 760px) { .chat-header { padding: .65rem .85rem; } .header-language, .user-profile { display: none; } .header-actions span { display: none; } .admin-badge, .logout-btn { width: 2.35rem; height: 2.35rem; padding: 0; justify-content: center; } .welcome-prompts { grid-template-columns: 1fr; } .messages-container { padding-top: 1rem; } }
     </style>
 </head>
 <body>
     <header class="chat-header">
         <div class="header-left">
-            <div class="header-brand">
-                <i class="fas fa-leaf"></i>
+            <div class="header-brand logo">
+                <span class="brand-mark" aria-hidden="true">傷</span>
                 <span>Shanghan-TCM Evidence</span>
             </div>
-            <div class="language-switcher" style="margin-left: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <a href="/chat" style="color: var(--gray-700); text-decoration: none;">中文</a>
-                <span style="color: var(--gray-400);">|</span>
-                <a href="/en/chat" style="color: var(--gray-700); text-decoration: none;">English</a>
+            <div class="header-language" aria-label="Language selection">
+                <a href="/chat">中文</a>
+                <a href="/en/chat" aria-current="page">EN</a>
             </div>
             <div class="user-profile">
                 <i class="fas fa-user-md"></i>
-                <span id="userEmail">{{ user }}</span>
+                <span id="userEmail" class="user-email">{{ user }}</span>
             </div>
         </div>
         
@@ -1219,6 +1269,7 @@
                     <p style="margin-top: var(--space-md); font-size: 0.875rem; color: var(--gray-500);">
                         <i class="fas fa-lightbulb"></i> Tip: You can ask in Chinese or English. I understand classical terminology.
                     </p>
+                    <div class="welcome-prompts" aria-label="Example questions"><button onclick="insertExample('Compare Fuling line 73 with its corresponding clause')">Compare source clauses</button><button onclick="insertExample('Show the source composition and preparation of Gui Zhi Tang')">Trace a formula</button><button onclick="insertExample('How are a floating pulse and aversion to cold understood in Taiyang disease?')">Examine a pattern</button></div>
                 </div>
             </div>
             
@@ -1248,6 +1299,10 @@
                 <label id="mode-name-label">Formulas</label>
                 <div class="toggle-switch active" id="mode-toggle" onclick="toggleSearchMode()"></div>
                 <label id="mode-text-label" class="active">Original Text+Formulas</label>
+                <select class="search-depth-select" id="search-depth" aria-label="Search depth">
+                    <option value="shallow">Quick search</option>
+                    <option value="deep">Deep search</option>
+                </select>
             </div>
             <div class="search-results" id="search-results">
                 <div class="result-item" style="color: var(--gray-600); text-align: center; padding: 2rem;">
@@ -1324,7 +1379,7 @@
         // State
         let currentMessageId = null;
         let messageCount = 0;
-        let currentSources = [];
+        const messageSources = new WeakMap();
         
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
@@ -1380,7 +1435,7 @@
                 
                 if (data.answer) {
                     currentMessageId = data.message_id;
-                    addMessage(data.answer, 'bot');
+                    addMessage(data.answer, 'bot', data.sources || []);
                     if (FEEDBACK_ENABLED) {
                         addFeedbackButtons(data.message_id);
                     }
@@ -1406,9 +1461,10 @@
         }
         
         // Add message to chat
-        function addMessage(content, sender) {
+        function addMessage(content, sender, sources = []) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message message-${sender}`;
+            messageSources.set(messageDiv, sources);
             
             const avatar = sender === 'user' 
                 ? '<i class="fas fa-user-md"></i>' 
@@ -1419,7 +1475,7 @@
                 : renderMarkdown(content);
             
             if (sender === 'bot') {
-                contentHtml = processBotMessage(contentHtml);
+                contentHtml = processBotMessage(contentHtml, sources);
             }
             
             messageDiv.innerHTML = `
@@ -1434,9 +1490,9 @@
         
         // Add sources with numbers
         function addSources(sources) {
-            currentSources = sources;
             const sourcesDiv = document.createElement('div');
             sourcesDiv.className = 'message sources-message';
+            messageSources.set(sourcesDiv, sources);
             let itemsHtml = '';
             for (let i = 0; i < sources.length; i++) {
                 const s = sources[i];
@@ -1669,9 +1725,15 @@
         }
 
         // Post-process bot message: link formula names and convert [N] citations
-        function processBotMessage(html) {
+        function processBotMessage(html, sources = []) {
             // Convert [N] citation markers to clickable superscripts
-            html = html.replace(/\[(\d+)\]/g, '<a class="citation-sup" href="#" onclick="showCitationPopup(event, $1); return false;">$1</a>');
+            html = html.replace(/\[(\d+)\]/g, (marker, value) => {
+                const num = Number(value);
+                const source = sources[num - 1];
+                if (!source) return marker;
+                if (source.hide_in_popup) return `<sup>${num}</sup>`;
+                return `<a class="citation-sup" href="#" onclick="showCitationPopup(event, ${num}); return false;">${num}</a>`;
+            });
 
             // Wrap known formula names in clickable popup links
             const sortedNames = Object.keys(FORMULA_NAME_MAP).sort((a, b) => b.length - a.length);
@@ -1694,7 +1756,8 @@
             const body = document.getElementById('citationPopupBody');
             if (!overlay || !body) return;
 
-            const source = currentSources[num - 1];
+            const owner = event.currentTarget.closest('.message');
+            const source = (messageSources.get(owner) || [])[num - 1];
             if (!source) return;
 
             // Lecture text is protected database content. Its citation remains
@@ -1887,7 +1950,7 @@
                 html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">`;
                 // Song column
                 html += `<div style="background:var(--gray-50);border-radius:8px;padding:0.75rem;border:1px solid var(--gray-200);">`;
-                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒论》 (Song)</div>`;
+                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒杂病论》 (Song)</div>`;
                 html += `<div style="font-size:0.9rem;color:var(--gray-800);line-height:1.6;">${songText}</div>`;
                 if (songEn) {
                     html += `<div style="font-size:0.8rem;color:var(--gray-500);line-height:1.5;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--gray-200);">${songEn}</div>`;
@@ -1904,7 +1967,7 @@
                 html += `</div>`;
             } else {
                 html += `<div style="background:var(--gray-50);border-radius:8px;padding:0.75rem;border:1px solid var(--gray-200);">`;
-                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒论》 (Song)</div>`;
+                html += `<div style="font-size:0.85rem;font-weight:600;color:var(--primary);margin-bottom:0.5rem;">宋本《伤寒杂病论》 (Song)</div>`;
                 html += `<div style="font-size:0.9rem;color:var(--gray-800);line-height:1.6;">${songText}</div>`;
                 if (songEn) {
                     html += `<div style="font-size:0.8rem;color:var(--gray-500);line-height:1.5;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--gray-200);">${songEn}</div>`;
@@ -2001,7 +2064,8 @@
             results.innerHTML = `<div class="result-item" style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Searching...</div>`;
 
             try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&mode=${searchMode}`);
+                const searchDepth = document.getElementById('search-depth')?.value || 'shallow';
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&mode=${searchMode}&depth=${searchDepth}`);
                 const data = await res.json();
 
                 if (!data.total) {
@@ -2013,7 +2077,7 @@
                     return;
                 }
 
-                let html = `<div class="search-count">Found ${data.total} result(s)</div>`;
+                let html = `<div class="search-count">${data.search_depth === 'deep' ? 'Deep' : 'Quick'} search found ${data.total} result(s)</div>`;
                 html += `<div id="search-results-data" style="display:none;">${escapeHtml(JSON.stringify(data))}</div>`;
 
                 // Canonical textbook entries come first, showing both aligned editions.

@@ -28,6 +28,37 @@ TEXT_QUERY_STOPWORDS = {
     "article", "text", "search", "find", "show", "tell", "me", "does", "say", "please",
 }
 
+SEARCH_DEPTH_LIMITS = {
+    "shallow": {"articles": 12, "zabing": 20, "lessons": 3, "candidates": 40},
+    "deep": {"articles": 50, "zabing": 100, "lessons": 12, "candidates": 160},
+}
+
+
+def normalize_search_depth(value):
+    """Return a supported retrieval depth without trusting client input."""
+    return "deep" if str(value or "").strip().lower() == "deep" else "shallow"
+
+
+def _search_limits(depth, limit=None):
+    normalized = normalize_search_depth(depth)
+    values = SEARCH_DEPTH_LIMITS[normalized]
+    return normalized, values, max(1, int(limit)) if limit is not None else None
+
+
+def _score_text_row(item, query, terms, fields, exact_fields=()):
+    raw_query = str(query or "").strip().lower()
+    values = {field: str(item.get(field, "") or "").lower() for field in fields}
+    score = 0
+    if raw_query:
+        score += sum(80 for field in exact_fields if values.get(field) == raw_query)
+        score += sum(24 for value in values.values() if raw_query in value)
+    for term in terms:
+        term_lower = term.lower()
+        matches = sum(value.count(term_lower) for value in values.values())
+        if matches:
+            score += min(matches, 6) * max(2, len(term_lower))
+    return score
+
 
 def _dedupe_preserve_order(values):
     seen = set()
@@ -485,8 +516,10 @@ def get_lesson(lesson_id):
 
 
 @with_db
-def search_lessons(query):
+def search_lessons(query, search_depth="shallow", limit=None):
     conn = get_connection()
+    depth, limits, requested_limit = _search_limits(search_depth, limit)
+    result_limit = requested_limit or limits["lessons"]
     terms = parse_text_query(query)
     if not terms:
         return []
@@ -502,7 +535,8 @@ def search_lessons(query):
     sql = f"""SELECT id, lesson_id, title, category, subcategory,
                      content, word_count
               FROM lessons WHERE {' OR '.join(conditions)}
-              ORDER BY lesson_id LIMIT 50"""
+              ORDER BY lesson_id LIMIT ?"""
+    params.append(limits["candidates"])
     rows = conn.execute(sql, params).fetchall()
     results = []
     seen_lesson_ids = set()
@@ -519,7 +553,7 @@ def search_lessons(query):
         item["preview"] = _make_preview(item.pop("content", ""), keyword_terms or terms)
         results.append(item)
     results.sort(key=lambda item: (-item["match_score"], item["lesson_id"]))
-    return results[:50]
+    return results[:result_limit]
 
 
 @with_db
@@ -664,8 +698,24 @@ def zabing_article_count():
 
 
 @with_db
-def search_zabing_articles(query):
+def get_zabing_by_reference(reference, edition="fuling", limit=100):
+    """Resolve an edition-specific chapter.line reference before applying limits."""
+    if edition == "fuling":
+        sql = "SELECT * FROM zabing_articles WHERE fuling_ref = ? ORDER BY entry_key LIMIT ?"
+        params = (reference, limit)
+    elif edition in ("song", "jingui"):
+        sql = "SELECT * FROM zabing_articles WHERE comparison_ref = ? AND comparison_book = ? ORDER BY entry_key LIMIT ?"
+        params = (reference, "宋本" if edition == "song" else "金匮", limit)
+    else:
+        return []
+    return [dict(row) for row in get_connection().execute(sql, params).fetchall()]
+
+
+@with_db
+def search_zabing_articles(query, search_depth="shallow", limit=None):
     conn = get_connection()
+    depth, limits, requested_limit = _search_limits(search_depth, limit)
+    result_limit = requested_limit or limits["zabing"]
     raw = str(query or "").strip()
     terms = parse_text_query(query)
     ref_terms = re.findall(r"\b\d{1,2}\.\d{1,3}\b", raw)
@@ -678,8 +728,8 @@ def search_zabing_articles(query):
         for row in conn.execute(
             """SELECT * FROM zabing_articles
                WHERE fuling_ref = ? OR comparison_ref = ?
-               ORDER BY fuling_ref LIMIT 20""",
-            (ref, ref),
+               ORDER BY fuling_ref LIMIT ?""",
+            (ref, ref, result_limit),
         ).fetchall():
             if row["entry_key"] not in seen:
                 rows.append(row)
@@ -695,22 +745,34 @@ def search_zabing_articles(query):
             if normalized_query and normalized_query in pinyin_text:
                 rows.append(row)
                 seen.add(row["entry_key"])
+                if depth == "shallow" and len(rows) >= result_limit:
+                    break
 
     if keyword_terms:
         fields = ["fuling_zh", "comparison_zh", "chapter_title", "fuling_ref", "comparison_ref"]
         conditions, params = _like_conditions(fields, keyword_terms)
-        sql = f"SELECT * FROM zabing_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_ref LIMIT 100"
+        sql = f"SELECT * FROM zabing_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_ref LIMIT ?"
+        params.append(limits["candidates"])
         for row in conn.execute(sql, params).fetchall():
             if row["entry_key"] not in seen:
                 rows.append(row)
                 seen.add(row["entry_key"])
 
-    return [dict(row) for row in rows[:100]]
+    results = [dict(row) for row in rows]
+    exact_refs = set(ref_terms)
+    results.sort(key=lambda item: (-(1000 if item.get("fuling_ref") in exact_refs or item.get("comparison_ref") in exact_refs else 0) - _score_text_row(
+        item, query, keyword_terms + ref_terms,
+        ["fuling_zh", "comparison_zh", "chapter_title", "fuling_ref", "comparison_ref"],
+        ["fuling_ref", "comparison_ref"],
+    ), item["fuling_ref"]))
+    return results[:result_limit]
 
 
 @with_db
-def search_fuling_articles(query):
+def search_fuling_articles(query, search_depth="shallow", limit=None):
     conn = get_connection()
+    depth, limits, requested_limit = _search_limits(search_depth, limit)
+    result_limit = requested_limit or limits["articles"]
     terms = parse_text_query(query)
     if not terms:
         return []
@@ -742,16 +804,27 @@ def search_fuling_articles(query):
             if normalized_query and normalized_query in pinyin_text:
                 rows.append(row)
                 seen_nums.add(row["fuling_article_num"])
+                if depth == "shallow" and len(rows) >= result_limit:
+                    break
 
     if not keyword_terms:
-        return [dict(r) for r in rows[:50]]
+        return [dict(r) for r in rows[:result_limit]]
 
     fields = ["fuling_zh", "song_zh", "channel", "CAST(fuling_article_num AS TEXT)", "CAST(song_article_num AS TEXT)"]
     conditions, params = _like_conditions(fields, keyword_terms)
 
-    sql = f"SELECT * FROM fuling_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_article_num LIMIT 50"
+    sql = f"SELECT * FROM fuling_articles WHERE {' OR '.join(conditions)} ORDER BY fuling_article_num LIMIT ?"
+    params.append(limits["candidates"])
     rows.extend(row for row in conn.execute(sql, params).fetchall() if row["fuling_article_num"] not in seen_nums)
-    return [dict(r) for r in rows]
+    results = [dict(row) for row in rows]
+    exact_numbers = set(article_nums)
+    prefer_song = "宋本" in str(query or "") or "song" in str(query or "").lower()
+    results.sort(key=lambda item: (-(1000 if (item.get("song_article_num") if prefer_song else item.get("fuling_article_num")) in exact_numbers else 0) - _score_text_row(
+        item, query, keyword_terms,
+        ["fuling_zh", "song_zh", "channel", "fuling_article_num", "song_article_num"],
+        ["fuling_article_num", "song_article_num"],
+    ), item["fuling_article_num"]))
+    return results[:result_limit]
 
 
 @write_lock

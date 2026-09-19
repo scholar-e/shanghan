@@ -34,6 +34,24 @@ def test_formula_extraction_ignores_blank_textbook_names():
     assert formulas == []
 
 
+def test_formula_extraction_prefers_longest_overlapping_name():
+    from chat_engine import extract_formulas_from_text
+
+    formulas = extract_formulas_from_text("例如可辨为芍药甘草附子汤证。")
+    names = [formula["names"]["zh"] for formula in formulas]
+
+    assert "芍药甘草附子汤方" in names
+    assert "附子汤" not in names
+
+
+def test_educational_question_does_not_trigger_prescription_save():
+    from formula_intake import should_save_prescription
+
+    formulas = [{"names": {"zh": "附子汤"}}]
+    assert should_save_prescription("什么是全象思辨？请举例说明。", [], formulas) is False
+    assert should_save_prescription("根据这些症状推荐什么方？", [], formulas) is True
+
+
 def test_active_formulas_are_textbook_only():
     from knowledge_base import FORMULAS
 

@@ -167,10 +167,43 @@
                 padding: 0;
             }
         }
+        /* Editorial authentication layout */
+        body { padding: 0; color: #17312b; background: #f5f1e8; }
+        body::before { content: "傷寒"; position: fixed; right: -2rem; bottom: -5rem; color: rgba(35,95,80,.035); font: 700 17rem/1 serif; writing-mode: vertical-rl; pointer-events: none; }
+        .login-wrapper { max-width: 1100px; min-height: 680px; display: grid; grid-template-columns: .95fr 1.05fr; background: #fffdf8; border: 1px solid rgba(23,49,43,.14); box-shadow: 0 35px 90px rgba(27,52,44,.13); }
+        .login-context { position: relative; padding: clamp(3rem,6vw,5.5rem); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; color: #e4ece8; background: #17463b; }
+        .login-context::after { content: "經"; position: absolute; right: -1.2rem; bottom: -2.2rem; color: rgba(255,255,255,.045); font: 700 13rem/1 serif; }
+        .context-kicker { color: #d69a8d; font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+        .login-context h1 { margin-top: 1.3rem; color: #fff; font: 500 clamp(2.5rem,5vw,4.4rem)/1.12 Georgia,serif; letter-spacing: -.045em; }
+        .login-context > div > p { max-width: 390px; color: #b6c8c1; line-height: 1.9; }
+        .context-source { position: relative; z-index: 1; padding-top: 1.3rem; border-top: 1px solid rgba(255,255,255,.18); color: #9eb3ab; font-size: .75rem; line-height: 1.7; }
+        .context-source strong { display: block; margin-bottom: .35rem; color: #e8efec; font: 500 1rem Georgia,serif; }
+        .login-panel { padding: clamp(2.2rem,6vw,5rem); display: flex; flex-direction: column; justify-content: center; }
+        .login-header { margin-bottom: 1.5rem; text-align: left; }
+        .login-brand { justify-content: flex-start; color: #17312b; font-family: Georgia,serif; }
+        .login-brand i { width: 2.4rem; height: 2.4rem; display: grid; place-items: center; color: #fff; background: #a94735; border-radius: 3px; }
+        .login-subtitle { color: #728079; font-size: .9rem; }
+        .login-language { align-self: flex-end; margin: -4rem 0 2rem; font-size: .78rem; }
+        .login-language a { color: #64736c; }
+        .login-card { padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+        .login-card h2 { margin-bottom: 2rem; color: #17312b; text-align: left; font: 500 2rem Georgia,serif; }
+        .form-label { color: #455950; font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+        .form-label i { display: none; }
+        .form-input { min-height: 3.4rem; color: #17312b; background: #fff; border-color: #ccd2cd; border-radius: 2px; }
+        .form-input:focus { border-color: #235f50; box-shadow: 0 0 0 3px rgba(35,95,80,.11); }
+        .btn-login { min-height: 3.5rem; background: #235f50; border-radius: 2px; }
+        .btn-login:hover { background: #17463b; }
+        .login-footer { display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .login-footer a { color: #235f50; }
+        .login-footer p { margin: 0; }
+        @media (max-width: 760px) { .login-wrapper { min-height: 100vh; grid-template-columns: 1fr; border: 0; } .login-context { min-height: 260px; padding: 2rem; } .login-context h1 { font-size: 2.5rem; } .context-source { display: none; } .login-panel { padding: 2rem; } }
+        @media (max-width: 480px) { .login-language { margin-top: -3.8rem; } .login-footer { align-items: flex-start; flex-direction: column; gap: .8rem; } }
     </style>
 </head>
 <body>
     <div class="login-wrapper">
+        <section class="login-context" aria-label="About the research assistant"><div><p class="context-kicker">Classical text · traceable evidence</p><h1>Begin with the text.<br>Follow the evidence.</h1><p>Sign in to find classical clauses, examine patterns, and study formulas in their original context.</p></div><p class="context-source"><strong><em>Shang Han Za Bing Lun</em> (Fuling Ancient Edition)</strong>Lectured by Ma Shouchun · recorded by Wang Xing · proofread by Zhou Mei · corrected by Liu Jialing</p></section>
+        <div class="login-panel">
         <div class="login-header">
             <div class="login-brand">
                 <i class="fas fa-leaf"></i>
@@ -178,7 +211,7 @@
             </div>
             <p class="login-subtitle">Secure authentication for TCM practitioners</p>
         </div>
-        <div style="text-align: right; margin-bottom: 1rem;">
+        <div class="login-language">
             <a href="/login" style="margin-right: 0.5rem; color: var(--gray-700); text-decoration: none;">中文</a>
             <span style="color: var(--gray-400);">|</span>
             <a href="/en/login" style="margin-left: 0.5rem; color: var(--gray-700); text-decoration: none;">English</a>
@@ -228,13 +261,14 @@
                 </div>
             </form>
             
-            <div class="login-footer">
+            <div class="login-footer back-link">
                 <a href="/en">
                     <i class="fas fa-arrow-left"></i>
                     Back to Home
                 </a>
                 <p class="mt-2">Need assistance? Contact admin.</p>
             </div>
+        </div>
         </div>
     </div>
 

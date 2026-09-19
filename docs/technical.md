@@ -1,5 +1,47 @@
 # Technical Documentation
 
+## Current AI implementation
+
+The running application uses Flask, SQLite keyword/pinyin retrieval, and a
+bounded DeepSeek or Claude tool loop. The ChromaDB/embedding diagrams below are
+historical design notes, not the current implementation.
+
+- `src/retrieval.py` shares reference parsing, formula matching, textbook lookup,
+  and source formatting between `/api/search`, initial chat context, and AI
+  tools. Bare line numbers use Fuling numbering; explicit Songben requests use
+  its alignment. Decimal references such as `26.9` and `chapter 26 line 9` are
+  resolved as one Zabing reference. Explicit `金匮 10.9` selects the comparison
+  edition, while bare `10.9` selects the Fuling reference. Formula and lecture
+  numbers do not become article numbers.
+- Public search remains textbook-only. Chat can search lecture passages or
+  retrieve a specific lecture, including keyword-centered excerpts from later
+  in the lecture. Lecture text is available to the model and admin conversation
+  review, but is excluded from public citation metadata and popups.
+- `src/evidence.py` owns an evidence registry for each chat request. Source
+  identities (`type:key`) are stable; display citation numbers are append-only
+  within that answer. Initial evidence and tool results share this registry.
+  Both provider protocols return tool records with `citation` and `source_id`.
+  Duplicate retrieval preserves the citation number and can add fuller text.
+- Chat returns and persists the final registry, including evidence discovered
+  through tools. Evidence is bounded before prompt assembly so citation labels
+  and instructions remain intact. Unknown numeric citations are visibly marked
+  as unavailable; this checks source identity, not claim-level support.
+- Each rendered answer and reference list retains its own sources, so clicking
+  an older citation cannot open a newer answer's evidence.
+
+Offline regression tests (temporary, seeded databases; mocked provider calls):
+
+```bash
+.venv/bin/python -m pytest -q src/tests/test_evidence_retrieval.py
+node src/tests/test_citations.cjs
+```
+
+The `deploy/src` copies of these modules and templates must be synchronized
+when preparing a deployment. Updating those local copies does not deploy the
+running service.
+
+---
+
 ## v0.5: Local Development Version
 
 A fully local version that runs on a developer's machine with their own AI API key.

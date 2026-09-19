@@ -91,6 +91,13 @@ def needs_formula_followup(query, conversation_history=None, min_categories=4):
     return formula_intake_detail_count(query, conversation_history) < min_categories
 
 
+def should_save_prescription(query, conversation_history=None, formulas=None):
+    """Save only treatment recommendations, not formulas cited educationally."""
+    if any(formula.get("_prescription_explicit") for formula in (formulas or [])):
+        return True
+    return wants_formula_recommendation(_recent_user_text(query, conversation_history))
+
+
 def formula_followup_response(query):
     chinese = re.search(r"[\u4e00-\u9fff]", query or "") is not None
     if chinese:
