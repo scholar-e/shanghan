@@ -132,7 +132,7 @@ tar -czf "$ARCHIVE" "${TAR_EXCLUDES[@]}" \
     server.py src tools textbook.txt textbook_zabing.txt textbook_yiji.txt \
     textbook2ndpart_Reedited_Zabing_toCh25.docx \
     textbook3rdpart_Reedited_Zabing_toCh40End.docx \
-    textbook4thpart_ReEdited_SHLYiJiGuide.docx .env.example deploy.sh
+    textbook4thpart_ReEdited_SHLYiJiGuide.docx lessons .env.example deploy.sh
 
 echo "Archive: $ARCHIVE"
 echo "Remote:  $REMOTE"
@@ -187,6 +187,8 @@ done
 cp -a "$EXTRACT_DIR/deploy.sh" "$INSTALL_DIR/deploy.sh"
 cp -a "$EXTRACT_DIR/src/." "$INSTALL_DIR/src/"
 cp -a "$EXTRACT_DIR/tools" "$INSTALL_DIR/"
+mkdir -p "$INSTALL_DIR/lessons"
+cp -a "$EXTRACT_DIR/lessons/." "$INSTALL_DIR/lessons/"
 
 echo "Updating deploy mirror ..."
 cp -a "$EXTRACT_DIR/server.py" "$MIRROR_DIR/server.py"
@@ -196,6 +198,8 @@ done
 cp -a "$EXTRACT_DIR/deploy.sh" "$MIRROR_DIR/deploy.sh"
 cp -a "$EXTRACT_DIR/src/." "$MIRROR_DIR/src/"
 cp -a "$EXTRACT_DIR/tools" "$MIRROR_DIR/"
+mkdir -p "$MIRROR_DIR/lessons"
+cp -a "$EXTRACT_DIR/lessons/." "$MIRROR_DIR/lessons/"
 
 if [[ "$WITH_DB" == true ]]; then
     echo "Installing local SQLite DB ..."
@@ -227,6 +231,8 @@ for destination in "$INSTALL_DIR" "$MIRROR_DIR"; do
     "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/ingest_zabing_textbooks.py" \
         --db --database "$destination/src/data/shanghan.db"
     "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/ingest_yiji_textbook.py" \
+        --db --database "$destination/src/data/shanghan.db"
+    "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/tools/ingest_lessons.py" \
         --db --database "$destination/src/data/shanghan.db"
 done
 
@@ -268,7 +274,7 @@ cd "$INSTALL_DIR"
 import sqlite3
 conn = sqlite3.connect("src/data/shanghan.db")
 print("db_integrity", conn.execute("PRAGMA integrity_check").fetchone()[0])
-for table in ["shl_articles", "fuling_articles", "lessons"]:
+for table in ["shl_articles", "fuling_articles", "zabing_articles", "lessons"]:
     try:
         print(table, conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
     except Exception as exc:

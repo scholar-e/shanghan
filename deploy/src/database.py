@@ -491,6 +491,12 @@ def get_prescription(prescription_id):
 @with_db
 def save_lesson(lesson_id, title, category, subcategory, source_path, content):
     conn = get_connection()
+    # Original and labeled versions intentionally coexist. Re-importing the
+    # same identity replaces its row instead of silently duplicating it.
+    conn.execute(
+        "DELETE FROM lessons WHERE lesson_id = ? AND category = ? AND subcategory = ?",
+        (lesson_id, category, subcategory),
+    )
     conn.execute(
         """INSERT OR REPLACE INTO lessons (lesson_id, title, category, subcategory, source_path, content, word_count)
            VALUES (?, ?, ?, ?, ?, ?, ?)""",

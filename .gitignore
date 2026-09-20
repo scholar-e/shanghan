@@ -165,6 +165,7 @@ Thumbs.db
 # Archives
 *.tar.gz
 *.tgz
+drive-download-*.zip
 
 # Data files
 *.csv

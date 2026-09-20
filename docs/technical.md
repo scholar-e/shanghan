@@ -71,6 +71,28 @@ Regression coverage: `src/tests/test_yiji_ingestion.py` checks the document's
 numbering and alignments, repeat imports, existing-data preservation, exact and
 keyword retrieval, public search, and AI citation identity.
 
+### Supplemental lecture archive
+
+`tools/import_lesson_archive.py` inventories a Google Drive ZIP and writes only
+missing original lecture DOCX files. It rejects nested paths and duplicate
+resolved lesson identities. The supplied archive contained two files labeled
+lesson 25; the 宜忌/忌水 file identifies itself internally as 第九十四课, so it is
+stored as lesson 94. Existing lesson files are retained, including a different
+copy of lesson 2.
+
+```bash
+.venv/bin/python tools/import_lesson_archive.py drive-download-*.zip
+.venv/bin/python tools/import_lesson_archive.py drive-download-*.zip --apply
+.venv/bin/python tools/ingest_lessons.py --all
+```
+
+Lesson database identity is `(lesson_id, category, subcategory)`. Reimporting
+updates that identity rather than adding duplicate rows, while original and
+labeled versions continue to coexist. Production releases package `lessons/`,
+merge it into the installed and mirror source trees, and reindex lessons after
+dependencies are installed. User conversations and all other database tables
+are untouched.
+
 ---
 
 ## v0.5: Local Development Version
